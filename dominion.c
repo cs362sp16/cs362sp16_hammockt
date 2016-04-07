@@ -35,168 +35,114 @@ int* kingdomCards(int k1, int k2, int k3, int k4, int k5, int k6, int k7,
   return k;
 }
 
-int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed,
-		   struct gameState *state) {
+//modified
+int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct gameState* state)
+{
+	int i, j;
+	//set up random number generator
+	SelectStream(1);
+	PutSeed((long)randomSeed);
 
-  int i;
-  int j;
-  int it;
-  //set up random number generator
-  SelectStream(1);
-  PutSeed((long)randomSeed);
+	//check number of players
+	if(numPlayers > MAX_PLAYERS || numPlayers < 2)
+		return -1;
 
-  //check number of players
-  if (numPlayers > MAX_PLAYERS || numPlayers < 2)
+	//set number of players
+	state->numPlayers = numPlayers;
+
+	//check selected kingdom cards are different
+	for(i = 0; i < 9; ++i) //10 - 1
+		for(j = i+1; j < 10; ++j)
+			if(kingdomCards[j] == kingdomCards[i])
+				return -1;
+
+	//initialize supply
+	///////////////////////////////
+
+	//set number of Curse cards. f(x) = 10x - 10, so long as x > 1 (which we have)
+	//f(2) = 10, f(3) = 20, f(4) = 30...
+	state->supplyCount[curse] = 10*numPlayers - 10;
+
+	//set number of Victory cards
+	if(numPlayers == 2)
 	{
-	  return -1;
+		state->supplyCount[estate] = 8;
+		state->supplyCount[duchy] = 8;
+		state->supplyCount[province] = 8;
+	}
+	else
+	{
+		state->supplyCount[estate] = 12;
+		state->supplyCount[duchy] = 12;
+		state->supplyCount[province] = 12;
 	}
 
-  //set number of players
-  state->numPlayers = numPlayers;
+	//set number of Treasure cards
+	state->supplyCount[copper] = 60 - (7 * numPlayers);
+	state->supplyCount[silver] = 40;
+	state->supplyCount[gold] = 30;
 
-  //check selected kingdom cards are different
-  for (i = 0; i < 10; i++)
+	//set number of Kingdom cards
+	for(i = adventurer; i <= treasure_map; ++i)       	//loop all cards
 	{
-	  for (j = 0; j < 10; j++)
+		for(j = 0; j < 10; ++j)           		//loop chosen cards
 		{
-	  if (j != i && kingdomCards[j] == kingdomCards[i])
-		{
-		  return -1;
-		}
-		}
-	}
+			if(kingdomCards[j] == i)
+			{
+				//check if card is a 'Victory' Kingdom card
+				if(kingdomCards[j] == great_hall || kingdomCards[j] == gardens)
+					state->supplyCount[i] = (numPlayers == 2)? 8: 12;
+				else
+					state->supplyCount[i] = 10;
 
-
-  //initialize supply
-  ///////////////////////////////
-
-  //set number of Curse cards. 10x - 10 for x >= 2
-  if (numPlayers == 2)
-	{
-	  state->supplyCount[curse] = 10;
-	}
-  else if (numPlayers == 3)
-	{
-	  state->supplyCount[curse] = 20;
-	}
-  else
-	{
-	  state->supplyCount[curse] = 30;
-	}
-
-  //set number of Victory cards
-  if (numPlayers == 2)
-	{
-	  state->supplyCount[estate] = 8;
-	  state->supplyCount[duchy] = 8;
-	  state->supplyCount[province] = 8;
-	}
-  else
-	{
-	  state->supplyCount[estate] = 12;
-	  state->supplyCount[duchy] = 12;
-	  state->supplyCount[province] = 12;
-	}
-
-  //set number of Treasure cards
-  state->supplyCount[copper] = 60 - (7 * numPlayers);
-  state->supplyCount[silver] = 40;
-  state->supplyCount[gold] = 30;
-
-  //set number of Kingdom cards
-  for (i = adventurer; i <= treasure_map; i++)       	//loop all cards
-	{
-	  for (j = 0; j < 10; j++)           		//loop chosen cards
-	{
-	  if (kingdomCards[j] == i)
-		{
-		  //check if card is a 'Victory' Kingdom card
-		  if (kingdomCards[j] == great_hall || kingdomCards[j] == gardens)
-		{
-		  if (numPlayers == 2){
-			state->supplyCount[i] = 8;
-		  }
-		  else{ state->supplyCount[i] = 12; }
-		}
-		  else
-		{
-		  state->supplyCount[i] = 10;
-		}
-		  break;
-		}
-	  else    //card is not in the set choosen for the game
-		{
-		  state->supplyCount[i] = -1;
+				break;
+			}
+			else    //card is not in the set choosen for the game
+				state->supplyCount[i] = -1;
 		}
 	}
 
-	}
+	////////////////////////
+	//supply intilization complete
 
-  ////////////////////////
-  //supply intilization complete
-
-  //set player decks
-  for (i = 0; i < numPlayers; i++)
+	//set player decks, can set all deckCounts at once with memset
+	for(i = 0; i < numPlayers; ++i)
 	{
-	  state->deckCount[i] = 0;
-	  for (j = 0; j < 3; j++)
-	{
-	  state->deck[i][j] = estate;
-	  state->deckCount[i]++;
-	}
-	  for (j = 3; j < 10; j++)
-	{
-	  state->deck[i][j] = copper;
-	  state->deckCount[i]++;
-	}
+		state->deckCount[i] = 10;
+		for(j = 0; j < 3; ++j) //first 3 are estate
+			state->deck[i][j] = estate;
+		for(; j < 10; ++j) //last 7 are copper
+			state->deck[i][j] = copper;
 	}
 
-  //shuffle player decks
-  for (i = 0; i < numPlayers; i++)
-	{
-	  if ( shuffle(i, state) < 0 )
-	{
-	  return -1;
-	}
-	}
+	//shuffle player decks
+	for(i = 0; i < numPlayers; ++i)
+		if(shuffle(i, state) < 0)
+			return -1;
 
-  //draw player hands
-  for (i = 0; i < numPlayers; i++)
-	{
-	  //initialize hand size to zero
-	  state->handCount[i] = 0;
-	  state->discardCount[i] = 0;
-	  //draw 5 cards
-	  // for (j = 0; j < 5; j++)
-	  //	{
-	  //	  drawCard(i, state);
-	  //	}
-	}
+	//initialize hands and discards size's to zero
+	memset(state->handCount, 0, numPlayers * sizeof(int));
+	memset(state->discardCount, 0, numPlayers * sizeof(int));
 
-  //set embargo tokens to 0 for all supply piles
-  for (i = 0; i <= treasure_map; i++)
-	{
-	  state->embargoTokens[i] = 0;
-	}
+	//set embargo tokens to 0 for all supply piles
+	memset(state->embargoTokens, 0, treasure_map * sizeof(int));
 
-  //initialize first player's turn
-  state->outpostPlayed = 0;
-  state->phase = 0;
-  state->numActions = 1;
-  state->numBuys = 1;
-  state->playedCardCount = 0;
-  state->whoseTurn = 0;
-  state->handCount[state->whoseTurn] = 0;
-  //int it; move to top
+	//initialize first player's turn
+	state->outpostPlayed = 0;
+	state->phase = 0;
+	state->numActions = 1;
+	state->numBuys = 1;
+	state->playedCardCount = 0;
+	state->whoseTurn = 0;
+	state->handCount[state->whoseTurn] = 0;
 
-  //Moved draw cards to here, only drawing at the start of a turn
-  for (it = 0; it < 5; it++){
-	drawCard(state->whoseTurn, state);
-  }
+	//draw cards here, only drawing at the start of a turn
+	for(i = 0; i < 5; ++i)
+		drawCard(state->whoseTurn, state);
 
-  updateCoins(state->whoseTurn, state, 0);
+	updateCoins(state->whoseTurn, state, 0);
 
-  return 0;
+	return 0;
 }
 
 int shuffle(int player, struct gameState *state) {
