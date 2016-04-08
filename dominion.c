@@ -183,12 +183,8 @@ int playCard(int handPos, int choice1, int choice2, int choice3, struct gameStat
 	int card;
 	int coin_bonus = 0; //tracks coins gain from actions
 
-	//check if it is the right phase
-	if(state->phase != 0)
-		return -1;
-
-	//check if player has enough actions
-	if(state->numActions < 1)
+	//check if it is the right phase or player has enough actions
+	if(state->phase != 0 || state->numActions < 1)
 		return -1;
 
 	//get card played
@@ -361,7 +357,7 @@ static int scoreHelper(int card, int player, struct gameState* state)
 	return 0; //if none do not do anything
 }
 
-//modified. Really need to test!!!
+//modified
 int scoreFor(int player, struct gameState *state)
 {
 	int i, score = 0;
@@ -980,42 +976,26 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
   return -1;
 }
 
+//modified
 int discardCard(int handPos, int currentPlayer, struct gameState *state, int trashFlag)
 {
-
-  //if card is not trashed, added to Played pile
-  if (trashFlag < 1)
+	//if card is not trashed, add to Played pile
+	if(trashFlag < 1)
 	{
-	  //add card to played pile
-	  state->playedCards[state->playedCardCount] = state->hand[currentPlayer][handPos];
-	  state->playedCardCount++;
+		state->playedCards[state->playedCardCount] = state->hand[currentPlayer][handPos];
+		state->playedCardCount++;
 	}
 
-  //set played card to -1
-  state->hand[currentPlayer][handPos] = -1;
+	//remove card from player's hand (decrement hand)
+	state->handCount[currentPlayer]--;
+	//replace discarded card with last card in hand if not last
+	if(handPos != state->handCount[currentPlayer])
+		state->hand[currentPlayer][handPos] = state->hand[currentPlayer][state->handCount[currentPlayer]]; //safe cause dec
 
-  //remove card from player's hand
-  if ( handPos == (state->handCount[currentPlayer] - 1) ) 	//last card in hand array is played
-	{
-	  //reduce number of cards in hand
-	  state->handCount[currentPlayer]--;
-	}
-  else if ( state->handCount[currentPlayer] == 1 ) //only one card in hand
-	{
-	  //reduce number of cards in hand
-	  state->handCount[currentPlayer]--;
-	}
-  else
-	{
-	  //replace discarded card with last card in hand
-	  state->hand[currentPlayer][handPos] = state->hand[currentPlayer][ (state->handCount[currentPlayer] - 1)];
-	  //set last card to -1
-	  state->hand[currentPlayer][state->handCount[currentPlayer] - 1] = -1;
-	  //reduce number of cards in hand
-	  state->handCount[currentPlayer]--;
-	}
+	//set last card to -1
+	state->hand[currentPlayer][state->handCount[currentPlayer]] = -1; //safe cause dec
 
-  return 0;
+	return 0;
 }
 
 //modified
