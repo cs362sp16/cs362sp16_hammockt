@@ -6,10 +6,10 @@ rngs.o: rngs.h rngs.c
 cardEffects.o: cardEffects.h cardEffects.c
 	gcc -c cardEffects.c -g $(CFLAGS)
 
-dominion.o: dominion.h dominion.c rngs.o
+dominion.o: dominion.h dominion.c rngs.o cardEffects.o
 	gcc -c dominion.c -g $(CFLAGS)
 
-playdom: dominion.o cardEffects.o playdom.c
+playdom: dominion.o playdom.c
 	gcc -o playdom playdom.c -g dominion.o rngs.o cardEffects.o $(CFLAGS)
 
 interface.o: interface.h interface.c
