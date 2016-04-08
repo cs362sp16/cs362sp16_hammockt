@@ -556,7 +556,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 		case mine: //trash treasure card and get another that costs up to 3 more
 			//valid pos in hand
-			if(choice1 < 0 || choice1 > state->handCount[currentPlayer])
+			if(choice1 < 0 || choice1 >= state->handCount[currentPlayer])
 				return -1;
 
 			//needs to be a treasure card. If mine is only card then this returns
@@ -582,7 +582,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 		case remodel: //trash card from hand and get one that costs 3 more
 			//valid pos in hand and remodel is not the only card
-			if(choice1 < 0 || choice1 > state->handCount[currentPlayer] || state->handCount[currentPlayer] <= 1)
+			if(choice1 < 0 || choice1 >= state->handCount[currentPlayer] || state->handCount[currentPlayer] <= 1)
 				return -1;
 
 			//check if that choice2 is available or valid
@@ -596,7 +596,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			//puts card in discard
 			gainCard(choice2, state, 0, currentPlayer);  //don't need to check thanks to choice2 if
 
-			//discard card from hand and trash treasure
+			//discard card from hand and trash other
 			discardCard(handPos, currentPlayer, state, 0);
 			discardCard(choice1, currentPlayer, state, 0);
 
