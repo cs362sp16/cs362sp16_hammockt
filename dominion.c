@@ -335,7 +335,7 @@ int isGameOver(struct gameState *state)
 		return 1;
 
 	//if three supply pile are at 0, the game ends
-	for(i = 0, j = 0; i < (treasure_map+1); ++i) //this is dangerous here! needs var
+	for(i = 0, j = 0; i <= treasure_map; ++i) //this is dangerous here! needs var
 		if(state->supplyCount[i] == 0)
 			j++;
 
@@ -379,72 +379,40 @@ int scoreFor(int player, struct gameState *state)
 	return score;
 }
 
-int getWinners(int players[MAX_PLAYERS], struct gameState *state) {
-  int i;
-  int j;
-  int highScore;
-  int currentPlayer;
+//modified
+int getWinners(int players[MAX_PLAYERS], struct gameState* state)
+{
+	int i, highScore = -9999, lessTurns = 0;
 
-  //get score for each player
-  for (i = 0; i < MAX_PLAYERS; i++)
+	//get score for each player and set unused player scores to -9999
+	for(i = 0; i < state->numPlayers; ++i)
 	{
-	  //set unused player scores to -9999
-	  if (i >= state->numPlayers)
-	{
-	  players[i] = -9999;
-	}
-	  else
-	{
-	  players[i] = scoreFor (i, state);
-	}
+		players[i] = scoreFor(i, state);
+		if(players[i] > highScore)
+			highScore = players[i];
 	}
 
-  //find highest score
-  j = 0;
-  for (i = 0; i < MAX_PLAYERS; i++)
-	{
-	  if (players[i] > players[j])
-	{
-	  j = i;
-	}
-	}
-  highScore = players[j];
+	for(; i < MAX_PLAYERS; ++i)
+		players[i] = -9999;
 
-  //add 1 to players who had less turns
-  currentPlayer = whoseTurn(state);
-  for (i = 0; i < MAX_PLAYERS; i++)
+	//add 1 to players who had less turns
+	for(i = whoseTurn(state)+1; i < state->numPlayers; ++i)
 	{
-	  if ( players[i] == highScore && i > currentPlayer )
-	{
-	  players[i]++;
-	}
+		if(players[i] == highScore)
+		{
+			players[i]++;
+			lessTurns = 1; //set to true
+		}
 	}
 
-  //find new highest score
-  j = 0;
-  for (i = 0; i < MAX_PLAYERS; i++)
-	{
-	  if ( players[i] > players[j] )
-	{
-	  j = i;
-	}
-	}
-  highScore = players[j];
+	if(lessTurns)
+		highScore++;
 
-  //set winners in array to 1 and rest to 0
-  for (i = 0; i < MAX_PLAYERS; i++)
-	{
-	  if ( players[i] == highScore )
-	{
-	  players[i] = 1;
-	}
-	  else
-	{
-	  players[i] = 0;
-	}
-	}
+	//set winners in array to 1 and rest to 0
+	for(i = 0; i < state->numPlayers; ++i)
+		players[i] = (players[i] == highScore);
 
-  return 0;
+	return 0;
 }
 
 //modified
