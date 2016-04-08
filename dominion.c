@@ -558,18 +558,20 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			//valid pos in hand
 			if(choice1 < 0 || choice1 > state->handCount[currentPlayer])
 				return -1;
-			//needs to be a treasure card. If hand empty then this solves that
+
+			//needs to be a treasure card. If mine is only card then this returns
 			if(state->hand[currentPlayer][choice1] < copper || state->hand[currentPlayer][choice1] > gold)
 				return -1;
 
-			//need to gain a treasure card (nothing else). Handles out of bounds input
-			if(choice2 < copper || choice2 > gold)
+			//need to gain a treasure card (nothing else). Handles out of bounds input. Handles empty supply
+			if(supplyCount(choice2, state) <= 0 || choice2 < copper || choice2 > gold)
 				return -1;
 
 			//can trade a gold/silver for copper
 			if((getCost(choice2) - 3) > getCost(state->hand[currentPlayer][choice1]))
 				return -1;
 
+			//puts card in hand
 			gainCard(choice2, state, 2, currentPlayer); //don't need to check thanks to choice2 if
 
 			//discard card from hand and trash treasure
@@ -579,25 +581,24 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			return 0;
 
 		case remodel: //trash card from hand and get one that costs 3 more
-			j = state->hand[currentPlayer][choice1];  //store card we will trash
-
-			if((getCost(state->hand[currentPlayer][choice1]) + 2) > getCost(choice2))
+			//valid pos in hand and remodel is not the only card
+			if(choice1 < 0 || choice1 > state->handCount[currentPlayer] || state->handCount[currentPlayer] <= 1)
 				return -1;
 
-			gainCard(choice2, state, 0, currentPlayer);
+			//check if that choice2 is available or valid
+			if(supplyCount(choice2, state) <= 0)
+				return -1;
 
-			//discard card from hand
+			//can trade for a lower card (if they want to)
+			if((getCost(choice2) - 2) > getCost(state->hand[currentPlayer][choice1]))
+				return -1;
+
+			//puts card in discard
+			gainCard(choice2, state, 0, currentPlayer);  //don't need to check thanks to choice2 if
+
+			//discard card from hand and trash treasure
 			discardCard(handPos, currentPlayer, state, 0);
-
-			//discard trashed card
-			for (i = 0; i < state->handCount[currentPlayer]; i++)
-			{
-				if (state->hand[currentPlayer][i] == j)
-				{
-					discardCard(i, currentPlayer, state, 0);
-					break;
-				}
-			}
+			discardCard(choice1, currentPlayer, state, 0);
 
 			return 0;
 
