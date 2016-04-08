@@ -549,7 +549,12 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				return -1;
 			}
 
-			return gainCard(choice1, state, 0, currentPlayer);//Gain the card
+			if(gainCard(choice1, state, 0, currentPlayer) == -1)//Gain the card (in discard)
+				return -1;
+
+			discardCard(handPos, currentPlayer, state, 0);
+
+			return 0;
 
 		case gardens: //this should just be deleted, its not a action card
 			return -1;
@@ -675,16 +680,16 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
-	case great_hall:
-	  //+1 Card
-	  drawCard(currentPlayer, state);
+		case great_hall:
+			//+1 Card
+			drawCard(currentPlayer, state);
 
-	  //+1 Actions
-	  state->numActions++;
+			//+1 Actions
+			state->numActions++;
 
-	  //discard card from hand
-	  discardCard(handPos, currentPlayer, state, 0);
-	  return 0;
+			//discard card from hand
+			discardCard(handPos, currentPlayer, state, 0);
+			return 0;
 
 	case minion:
 	  //+1 action
