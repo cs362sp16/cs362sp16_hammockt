@@ -729,28 +729,25 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			}
 			return 0;
 
-	case steward:
-	  if (choice1 == 1)
-	{
-	  //+2 cards
-	  drawCard(currentPlayer, state);
-	  drawCard(currentPlayer, state);
-	}
-	  else if (choice1 == 2)
-	{
-	  //+2 coins
-	  state->coins = state->coins + 2;
-	}
-	  else
-	{
-	  //trash 2 cards in hand
-	  discardCard(choice2, currentPlayer, state, 1);
-	  discardCard(choice3, currentPlayer, state, 1);
-	}
+		case steward:
+			if(choice1 == 1) //+2 cards
+			{
+				drawCard(currentPlayer, state);
+				drawCard(currentPlayer, state);
+			}
+			else if(choice1 == 2) //+2 coins
+				state->coins += 2;
+			else //need to check choice2 and choice3 here
+			{
+				//trash 2 cards in hand. Can trash 1 (or 0?) if have less than 2
+				discardCard(choice2, currentPlayer, state, 1); //removes cards from play
+				discardCard(choice3, currentPlayer, state, 1);
+			}
 
-	  //discard card from hand
-	  discardCard(handPos, currentPlayer, state, 0);
-	  return 0;
+			//discard card from hand
+			discardCard(handPos, currentPlayer, state, 0);
+
+			return 0;
 
 	case tribute:
 	  if ((state->discardCount[nextPlayer] + state->deckCount[nextPlayer]) <= 1){
