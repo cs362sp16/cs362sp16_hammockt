@@ -1,5 +1,6 @@
 #include "cardEffects.h"
 
+//everything that adds/messes with coins needs to put it into bonus
 //draws until you get 2 treasure cards (copper, silver, or gold). Discards all other cards
 int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 {
