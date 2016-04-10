@@ -49,6 +49,7 @@ int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 }
 
 //+2 coins, everyone else must dispose 1 copper...if not then reveal hand
+//there could be a problem with discard order
 int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int i, j;
@@ -86,7 +87,7 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//every other player discards top card of deck. Then replaces it with a curse
+//every other player discards top card of deck. Then replaces it with a curse (comes from supply?)
 int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int i;
@@ -109,6 +110,7 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 }
 
 //trash this and another copy from hand. if success then add 4 gold coins to deck
+//problem here for discard order
 int treasureMapEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int i, index = -1;
