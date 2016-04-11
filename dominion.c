@@ -515,8 +515,6 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 	int currentPlayer = whoseTurn(state);
 	int nextPlayer = (currentPlayer + 1) % state->numPlayers;
 
-	int tributeRevealedCards[2] = {-1, -1};
-
 	//uses switch to select card and perform actions
 	switch(card)
 	{
@@ -722,59 +720,27 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
-		case tribute:
-			if((state->discardCount[nextPlayer] + state->deckCount[nextPlayer]) <= 1)
-			{
-				if(state->deckCount[nextPlayer] > 0)
-				{
-					tributeRevealedCards[0] = state->deck[nextPlayer][state->deckCount[nextPlayer]-1];
-					state->deckCount[nextPlayer]--;
-				}
-				else if(state->discardCount[nextPlayer] > 0)
-				{
-					tributeRevealedCards[0] = state->discard[nextPlayer][state->discardCount[nextPlayer]-1];
-					state->discardCount[nextPlayer]--;
-				}
-				else //No Card to Reveal
-				{
-					if(DEBUG)
-						printf("No cards to reveal\n");
-				}
-			}
-			else
-			{
-				if(state->deckCount[nextPlayer] == 0)
-				{
-					for(i = 0; i < state->discardCount[nextPlayer]; i++)
-					{
-						state->deck[nextPlayer][i] = state->discard[nextPlayer][i];//Move to deck
-						state->deckCount[nextPlayer]++;
-						state->discard[nextPlayer][i] = -1;
-						state->discardCount[nextPlayer]--;
-					}
+		case tribute: //some code duplication here but works
+			j = state->handCount[nextPlayer]; //pos of interest
+			for(i = 0; i < 2; ++i) // try to draw/reveal 2 cards
+				drawCard(nextPlayer, state);
 
-					shuffle(nextPlayer,state);//Shuffle the deck
-				}
-				tributeRevealedCards[0] = state->deck[nextPlayer][state->deckCount[nextPlayer]-1];
-				state->deck[nextPlayer][state->deckCount[nextPlayer]--] = -1;
-				state->deckCount[nextPlayer]--;
-				tributeRevealedCards[1] = state->deck[nextPlayer][state->deckCount[nextPlayer]-1];
-				state->deck[nextPlayer][state->deckCount[nextPlayer]--] = -1;
-				state->deckCount[nextPlayer]--;
+			//handle drawing 2 identical cards
+			if(state->handCount[nextPlayer] == (j+2) && state->hand[nextPlayer][j] == state->hand[nextPlayer][j+1])
+			{
+				//need to discard [j+1] without using discardCard (it puts it into the played area).
+				state->discard[nextPlayer][state->discardCount[nextPlayer]] = state->hand[nextPlayer][j+1];
+				state->discardCount[nextPlayer]++;
+				//then need to decrement handCount[nextPlayer]
+				discardCard(j+1, nextPlayer, state, 1); //removes from hand but does not move to played area
 			}
 
-			if(tributeRevealedCards[0] == tributeRevealedCards[1]) //If we have a duplicate card, just drop one
+			//decrementing so I can process and remove at the same time
+			for(i = state->handCount[nextPlayer]-1; i >= j; --i)
 			{
-				state->playedCards[state->playedCardCount] = tributeRevealedCards[1];
-				state->playedCardCount++;
-				tributeRevealedCards[1] = -1;
-			}
-
-			for(i = 0; i <= 2; i++)
-			{
-				if (tributeRevealedCards[i] == copper || tributeRevealedCards[i] == silver || tributeRevealedCards[i] == gold) //Treasure cards
+				if(state->hand[nextPlayer][i] == copper || state->hand[nextPlayer][i] == silver || state->hand[nextPlayer][i] == gold) //Treasure cards
 					state->coins += 2;
-				else if(tributeRevealedCards[i] == estate || tributeRevealedCards[i] == duchy || tributeRevealedCards[i] == province || tributeRevealedCards[i] == gardens || tributeRevealedCards[i] == great_hall)
+				else if(state->hand[nextPlayer][i] == estate || state->hand[nextPlayer][i] == duchy || state->hand[nextPlayer][i] == province || state->hand[nextPlayer][i] == gardens || state->hand[nextPlayer][i] == great_hall)
 				{
 					//Victory Card Found
 					drawCard(currentPlayer, state);
@@ -782,7 +748,16 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				}
 				else //Action Card
 					state->numActions += 2;
+
+				//discard the processed card
+				state->discard[nextPlayer][state->discardCount[nextPlayer]] = state->hand[nextPlayer][i];
+				state->discardCount[nextPlayer]++;
+				//then need to decrement handCount[nextPlayer]
+				discardCard(i, nextPlayer, state, 1); //removes from hand but does not move to played area
 			}
+
+			//discard played card from hand
+			discardCard(handPos, currentPlayer, state, 0);
 
 			return 0;
 
