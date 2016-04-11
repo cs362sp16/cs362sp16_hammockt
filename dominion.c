@@ -526,20 +526,8 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 		case feast:
 			//gain card with cost up to 5
-			if(supplyCount(choice1, state) <= 0)
-			{
-				#if DEBUG
-					printf("None of that card left, sorry!\n");
-				#endif
+			if(supplyCount(choice1, state) <= 0 || getCost(choice1) > 5)
 				return -1;
-			}
-			if(getCost(choice1) > 5)
-			{
-				#if DEBUG
-					printf("That card is too expensive!\n");
-				#endif
-				return -1;
-			}
 
 			if(gainCard(choice1, state, 0, currentPlayer) == -1)//Gain the card (in discard)
 				return -1;
@@ -764,10 +752,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 		case ambassador:
 			j = 0;		//used to check if player has enough cards to discard
 
-			if(choice2 > 2 || choice2 < 0)
-				return -1;
-
-			if(choice1 == handPos)
+			if(choice2 > 2 || choice2 < 0 || choice1 == handPos)
 				return -1;
 
 			for(i = 0; i < state->handCount[currentPlayer]; i++)
