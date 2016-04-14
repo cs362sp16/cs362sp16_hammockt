@@ -8,7 +8,9 @@ int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 
 	while(drawntreasure < 2)
 	{
-		drawCard(currentPlayer, state); //draw a card. Automatically puts discard into deck
+		//draw a card. Automatically puts discard into deck but quit if discard and deck are both empty
+		if(drawCard(currentPlayer, state) == -1)
+			break;
 
 		cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1];//top card of hand is most recently drawn card.
 		if(cardDrawn == copper || cardDrawn == silver || cardDrawn == gold) //can optimize this but could lead to undefined
@@ -54,13 +56,15 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int i, j;
 
+	//+2 coins does not work and will need to modify state struct
 	updateCoins(currentPlayer, state, 2); //+2 coins
 	for(i = 0; i < state->numPlayers; ++i)
 	{
 		if(i == currentPlayer) //don't process ourselves
 			continue;
 
-		for(j = 0; j < state->handCount[i]; ++j)
+		//try to discard 1 copper and stop
+		for(j = 0; j < state->handCount[i]; ++j) //can be used for safeDiscard
 		{
 			if(state->hand[i][j] == copper)
 			{
@@ -87,7 +91,7 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//every other player discards top card of deck. Then replaces it with a curse (comes from supply?)
+//every other player discards top card of deck. Then replaces it with a curse
 int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int i;
@@ -97,9 +101,12 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 		if(i != currentPlayer)
 		{
 			//add to discard by taking from deck
-			state->discard[i][state->discardCount[i]++] = state->deck[i][state->deckCount[i]-1];
-			//replace top deck card with curse. Count remains the same
-			state->deck[i][state->deckCount[i]-1] = curse;//Top card now a curse
+			//puts in hand and deals with deck being empty. Dont discard if deck and discard are empty
+			if(drawCard(i, state) != -1) //drawed a card so discard it and pop from hand
+				state->discard[i][state->discardCount[i]++] = state->hand[i][--state->handCount[i]];
+
+			//try to add curse to top of deck
+			gainCard(curse, state, 1, i);
 		}
 	}
 
@@ -113,35 +120,26 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 //problem here for discard order
 int treasureMapEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	int i, index = -1;
+	int i;
 
 	//search hand for another treasure_map
 	for(i = 0; i < state->handCount[currentPlayer]; ++i)
 	{
 		if(i != handPos && state->hand[currentPlayer][i] == treasure_map)
 		{
-			index = i;
-			break;
+			//trash other treasure card
+			discardCard(i, currentPlayer, state, 1);
+
+			//try to gain 4 Gold cards
+			for(i = 0; i < 4; ++i)
+				gainCard(gold, state, 1, currentPlayer);
+
+			break; //stop trashing treasure_maps
 		}
 	}
 
-	//trash this treasure card
+	//always trash this treasure card
 	discardCard(handPos, currentPlayer, state, 1);
 
-	//index is only set when when we find a treasure_map. Maybe trash before this
-	if(index != -1)
-	{
-		//trash other treasure card
-		discardCard(index, currentPlayer, state, 1);
-
-		//gain 4 Gold cards
-		for(i = 0; i < 4; ++i)
-			gainCard(gold, state, 1, currentPlayer);
-
-		//return success
-		return 1;
-	}
-
-	//no second treasure_map found in hand
-	return -1;
+	return 0;
 }
