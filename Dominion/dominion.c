@@ -162,7 +162,7 @@ int shuffle(int player, struct gameState* state)
 		int card = floor(Random() * state->deckCount[player]);
 		newDeck[newDeckPos] = state->deck[player][card];
 		newDeckPos++;
-		for(i = card; i < state->deckCount[player]-1; ++i)
+		for(int i = card; i < state->deckCount[player]-1; ++i)
 			state->deck[player][i] = state->deck[player][i+1];
 
 		state->deckCount[player]--;
