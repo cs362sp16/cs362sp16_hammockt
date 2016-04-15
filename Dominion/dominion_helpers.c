@@ -45,12 +45,10 @@ int drawCard(int player, struct gameState *state)
 //modified
 int updateCoins(int player, struct gameState* state, int bonus)
 {
-	int i;
-
 	//reset coin count
 	state->coins = 0;
 
-	for(i = 0; i < state->handCount[player]; ++i)
+	for(int i = 0; i < state->handCount[player]; ++i)
 	{
 		switch(state->hand[player][i])
 		{
