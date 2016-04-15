@@ -1,22 +1,16 @@
 CFLAGS = -std=c99 -Wall -fpic -coverage -lm
 
-rngs.o: rngs.h rngs.c
-	gcc -c rngs.c -g $(CFLAGS)
+%.o: %.c %.h
+	gcc -c $< -g $(CFLAGS)
 
-cardEffects.o: cardEffects.h cardEffects.c
-	gcc -c cardEffects.c -g $(CFLAGS)
-
-dominion.o: dominion.h dominion.c rngs.o cardEffects.o
+dominion.o: dominion.h dominion.c rngs.o cardEffects.o dominion_helpers.o
 	gcc -c dominion.c -g $(CFLAGS)
 
 playdom: dominion.o playdom.c
-	gcc -o playdom playdom.c -g dominion.o rngs.o cardEffects.o $(CFLAGS)
-
-interface.o: interface.h interface.c
-	gcc -c interface.c -g $(CFLAGS)
+	gcc -o playdom playdom.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
 
 player: player.c interface.o
-	gcc -o player player.c -g  dominion.o rngs.o interface.o cardEffects.o $(CFLAGS)
+	gcc -o player player.c -g  dominion.o rngs.o interface.o cardEffects.o dominion_helpers.o $(CFLAGS)
 
 all: playdom player
 
