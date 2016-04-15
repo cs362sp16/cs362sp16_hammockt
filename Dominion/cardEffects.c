@@ -1,7 +1,6 @@
 #include "cardEffects.h"
 
 //everything that adds/messes with coins needs to put it into bonus
-//draws until you get 2 treasure cards (copper, silver, or gold). Discards all other cards
 int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	for(int drawntreasure = 0; drawntreasure < 2; )
@@ -26,7 +25,6 @@ int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//did draw 4 for player, then 1 for everyone else
 int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	//Everyone gets 1 card
@@ -46,13 +44,11 @@ int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//+2 coins, everyone else must dispose 1 copper...if not then reveal hand
 //there could be a problem with discard order
 int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int j;
 
-	//+2 coins does not work and will need to modify state struct
 	updateCoins(currentPlayer, state, 2); //+2 coins
 	for(int i = 0; i < state->numPlayers; ++i)
 	{
@@ -87,7 +83,6 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//every other player discards top card of deck. Then replaces it with a curse
 int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	for(int i = 0; i < state->numPlayers; ++i)
@@ -110,8 +105,7 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//trash this and another copy from hand. if success then add 4 gold coins to deck
-//problem here for discard order
+//there could be a problem with discard order
 int treasureMapEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	//search hand for another treasure_map

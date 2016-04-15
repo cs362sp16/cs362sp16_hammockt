@@ -1,0 +1,33 @@
+////////////////////////////////
+/// Assignment 1 Refactoring ///
+////////////////////////////////
+
+Intro
+-All of the refactored cards were moved into their own file which is cardEffects
+-cardEffects.h has the function prototypes with a description of what it does
+-The functions follow the dominion return style with 0 for success and -1 for failure
+-cardEffects() in dominion.c calls these and handles their return values
+
+Adventurer
+-Now it does not store discarded cards in temp array
+-it discards while processing to remove memory overhead of temp array
+
+Council Room
+-changing the draw order removed a branch in a for loop
+
+Cutpurse
+-Was able to remove an unnecessary loop counter (k)
+-Moved 2 if statements around to make it more readable
+
+Sea Hag
+-Fixed problem with adding/removing from deck. It was topping one off and it decremented
+ deck count by 3 when it needed to be left alone
+-Fixed trying to remove with a empty deck and/or discard. Can handle it now
+-Fixed problem with curses. Now it tries to gain one from supply if available (it ignored
+ supply before)
+
+Treasure Map
+-Removed unnecessary index and just process inside that if statement instead
+-It always trashes itself and another treasure_map if it can find one which is the
+ correct behavior. Because of this it no longer returns an error when it can't remove
+ since it was not correct
