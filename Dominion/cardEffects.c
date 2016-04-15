@@ -4,20 +4,18 @@
 //draws until you get 2 treasure cards (copper, silver, or gold). Discards all other cards
 int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	int drawntreasure = 0, cardDrawn;
-
-	while(drawntreasure < 2)
+	for(int drawntreasure = 0; drawntreasure < 2; )
 	{
 		//draw a card. Automatically puts discard into deck but quit if discard and deck are both empty
 		if(drawCard(currentPlayer, state) == -1)
 			break;
 
-		cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1];//top card of hand is most recently drawn card.
-		if(cardDrawn == copper || cardDrawn == silver || cardDrawn == gold) //can optimize this but could lead to undefined
+		int cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1]; //top card of hand is most recently drawn card.
+		if(cardDrawn >= copper && cardDrawn <= gold) //is treasure?
 			drawntreasure++;
-		else //this assumes first drawn cards are discarded first. Not last drawn cards are discarded first
+		else
 		{
-			state->discard[currentPlayer][state->discardCount[currentPlayer]++] = cardDrawn; // discard all cards in play that have been drawn
+			state->discard[currentPlayer][state->discardCount[currentPlayer]++] = cardDrawn; //discard all cards in play that have been drawn
 			state->handCount[currentPlayer]--; //this should just remove the top card (the most recently drawn one).
 		}
 	}
@@ -31,14 +29,12 @@ int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 //did draw 4 for player, then 1 for everyone else
 int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	int i;
-
 	//Everyone gets 1 card
-	for(i = 0; i < state->numPlayers; ++i)
+	for(int i = 0; i < state->numPlayers; ++i)
 		drawCard(i, state);
 
 	//+3 cards for the player. +4 total for player
-	for(i = 0; i < 3; ++i)
+	for(int i = 0; i < 3; ++i)
 		drawCard(currentPlayer, state);
 
 	//+1 Buy
@@ -54,11 +50,11 @@ int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 //there could be a problem with discard order
 int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	int i, j;
+	int j;
 
 	//+2 coins does not work and will need to modify state struct
 	updateCoins(currentPlayer, state, 2); //+2 coins
-	for(i = 0; i < state->numPlayers; ++i)
+	for(int i = 0; i < state->numPlayers; ++i)
 	{
 		if(i == currentPlayer) //don't process ourselves
 			continue;
@@ -94,9 +90,7 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 //every other player discards top card of deck. Then replaces it with a curse
 int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	int i;
-
-	for(i = 0; i < state->numPlayers; ++i)
+	for(int i = 0; i < state->numPlayers; ++i)
 	{
 		if(i != currentPlayer)
 		{
@@ -120,10 +114,8 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 //problem here for discard order
 int treasureMapEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	int i;
-
 	//search hand for another treasure_map
-	for(i = 0; i < state->handCount[currentPlayer]; ++i)
+	for(int i = 0; i < state->handCount[currentPlayer]; ++i)
 	{
 		if(i != handPos && state->hand[currentPlayer][i] == treasure_map)
 		{
