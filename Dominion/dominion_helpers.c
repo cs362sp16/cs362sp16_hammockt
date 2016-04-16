@@ -86,6 +86,15 @@ int discardCard(int handPos, int currentPlayer, struct gameState *state, int tra
 	return 0;
 }
 
+int safeDiscard(int card, int currentPlayer, struct gameState* state, int trashFlag)
+{
+	for(int i = 0; i < state->handCount[currentPlayer]; ++i)
+		if(state->hand[currentPlayer][i] == card)
+			return discardCard(i, currentPlayer, state, trashFlag);
+
+	return -1;
+}
+
 //modified
 int gainCard(int supplyPos, struct gameState *state, int toFlag, int player)
 {
