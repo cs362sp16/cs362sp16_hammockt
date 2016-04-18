@@ -2,7 +2,7 @@
 #include <string.h>
 
 //modified
-int drawCard(int player, struct gameState *state)
+int drawCard(int player, struct gameState* state)
 {
 	//Deck is empty
 	if(state->deckCount[player] <= 0)
@@ -21,17 +21,10 @@ int drawCard(int player, struct gameState *state)
 
 		//Shuffle the deck
 		shuffle(player, state);//Shuffle the deck up and make it so that we can draw
-		#if DEBUG
-			printf("Deck count now: %d\n", state->deckCount[player]);
-		#endif
 	}
 
 	//Draw the Card
 	int count = state->handCount[player];//Get current player's hand count
-	#if DEBUG
-		printf("Current hand count: %d\n", count);
-	#endif
-
 	int deckCounter = state->deckCount[player];//Create a holder for the deck count
 
 	//can do this all in one line but will be long and not pretty
@@ -65,7 +58,7 @@ int updateCoins(int player, struct gameState* state, int bonus)
 }
 
 //modified
-int discardCard(int handPos, int currentPlayer, struct gameState *state, int trashFlag)
+int discardCard(int handPos, int currentPlayer, struct gameState* state, int trashFlag)
 {
 	//if card is not trashed, add to Played pile
 	if(trashFlag < 1)
@@ -96,7 +89,7 @@ int safeDiscard(int card, int currentPlayer, struct gameState* state, int trashF
 }
 
 //modified
-int gainCard(int supplyPos, struct gameState *state, int toFlag, int player)
+int gainCard(int supplyPos, struct gameState* state, int toFlag, int player)
 {
 	//Note: supplyPos is enum of choosen card
 
@@ -171,4 +164,23 @@ int getCost(int cardNumber)
 	}
 
 	return -1;
+}
+
+int isVictory(int card)
+{
+	switch(card)
+	{
+		case estate:
+		case duchy:
+		case province:
+		case great_hall:
+		case gardens: return 1;
+	}
+
+	return 0;
+}
+
+int isTreasure(int card)
+{
+	return (card >= copper && card <= gold);
 }

@@ -19,20 +19,21 @@ struct gameState* newGame()
 	return (struct gameState*)malloc(sizeof(struct gameState));
 }
 
-int* kingdomCards(int k1, int k2, int k3, int k4, int k5, int k6, int k7,
-		  int k8, int k9, int k10) {
-  int* k = malloc(10 * sizeof(int));
-  k[0] = k1;
-  k[1] = k2;
-  k[2] = k3;
-  k[3] = k4;
-  k[4] = k5;
-  k[5] = k6;
-  k[6] = k7;
-  k[7] = k8;
-  k[8] = k9;
-  k[9] = k10;
-  return k;
+//formatted
+int* kingdomCards(int k1, int k2, int k3, int k4, int k5, int k6, int k7, int k8, int k9, int k10)
+{
+	int* k = malloc(10 * sizeof(int));
+	k[0] = k1;
+	k[1] = k2;
+	k[2] = k3;
+	k[3] = k4;
+	k[4] = k5;
+	k[5] = k6;
+	k[6] = k7;
+	k[7] = k8;
+	k[8] = k9;
+	k[9] = k10;
+	return k;
 }
 
 //modified
@@ -168,11 +169,8 @@ int shuffle(int player, struct gameState* state)
 		state->deckCount[player]--;
 	}
 
-	for(int i = 0; i < newDeckPos; ++i)
-	{
-		state->deck[player][i] = newDeck[i];
-		state->deckCount[player]++;
-	}
+	memcpy(state->deck[player], newDeck, newDeckPos * sizeof(int));
+	state->deckCount[player] = newDeckPos;
 
 	return 0;
 }
@@ -214,8 +212,6 @@ int buyCard(int supplyPos, struct gameState* state)
 
 	//I don't know what to do about the phase thing.
 
-	int who = state->whoseTurn;
-
 	if(state->numBuys < 1)
 	{
 		if(DEBUG)
@@ -237,17 +233,13 @@ int buyCard(int supplyPos, struct gameState* state)
 	else
 	{
 		state->phase = 1;
-		//state->supplyCount[supplyPos]--;
-		gainCard(supplyPos, state, 0, who); //card goes in discard
+		gainCard(supplyPos, state, 0, state->whoseTurn); //card goes in discard
 
-		state->coins = (state->coins) - (getCost(supplyPos));
+		state->coins -= getCost(supplyPos);
 		state->numBuys--;
 		if(DEBUG)
 			printf("You bought card number %d for %d coins. You now have %d buys and %d coins.\n", supplyPos, getCost(supplyPos), state->numBuys, state->coins);
 	}
-
-	//state->discard[who][state->discardCount[who]] = supplyPos;
-	//state->discardCount[who]++;
 
 	return 0;
 }
@@ -304,15 +296,21 @@ int endTurn(struct gameState* state)
 {
 	int currentPlayer = whoseTurn(state);
 
-	//Discard hand
-	for(int i = 0; i < state->handCount[currentPlayer]; ++i)
-	{
-		state->discard[currentPlayer][state->discardCount[currentPlayer]++] = state->hand[currentPlayer][i];//Discard
-		state->hand[currentPlayer][i] = -1;//Set card to -1
-	}
-	state->handCount[currentPlayer] = 0;//Reset hand count
+	//move hand into discard, then set hand to -1
+#define discard state->discard[currentPlayer]
+#define discardCount state->discardCount[currentPlayer]
+#define hand state->hand[currentPlayer]
+#define handCount state->handCount[currentPlayer]
+	memcpy(discard + discardCount, hand, handCount * sizeof(int));
+	memset(hand, -1, handCount * sizeof(int));
+	discardCount += handCount; //add hand to discard
+	handCount = 0;//Reset hand count
+#undef discard
+#undef discardCount
+#undef hand
+#undef handCount
 
-	//Code for determining the player
+	//Code for determining the next player
 	state->whoseTurn = (currentPlayer + 1) % state->numPlayers;
 
 	state->outpostPlayed = 0;
@@ -645,11 +643,10 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			//decrementing so I can process and remove at the same time
 			for(i = state->handCount[nextPlayer]-1; i >= j; --i)
 			{
-				if(state->hand[nextPlayer][i] >= copper && state->hand[nextPlayer][i] <= gold) //Treasure cards
+				if(isTreasure(state->hand[nextPlayer][i])) //Treasure cards
 					state->coins += 2;
-				else if(state->hand[nextPlayer][i] == estate || state->hand[nextPlayer][i] == duchy || state->hand[nextPlayer][i] == province || state->hand[nextPlayer][i] == gardens || state->hand[nextPlayer][i] == great_hall)
+				else if(isVictory(state->hand[nextPlayer][i])) //Victory cards
 				{
-					//Victory Card Found
 					drawCard(currentPlayer, state);
 					drawCard(currentPlayer, state);
 				}

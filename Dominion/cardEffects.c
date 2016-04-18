@@ -10,7 +10,7 @@ int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 			break;
 
 		int cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1]; //top card of hand is most recently drawn card.
-		if(cardDrawn >= copper && cardDrawn <= gold) //is treasure?
+		if(isTreasure(cardDrawn)) //is treasure?
 			drawntreasure++;
 		else
 		{
