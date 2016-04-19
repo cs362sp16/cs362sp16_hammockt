@@ -3,6 +3,11 @@
 
 #include "dominion.h"
 
+#define PUSH(pile, player, val) state->pile[player][state->pile##Count[player]++] = val
+#define TOP(pile, player) state->pile[player][state->pile##Count[player]-1]
+#define POP(pile, player) state->pile##Count[player]--
+#define POP_R(pile, player) state->pile[player][--state->pile##Count[player]]
+
 int drawCard(int player, struct gameState *state);
 int updateCoins(int player, struct gameState *state, int bonus);
 int discardCard(int handPos, int currentPlayer, struct gameState *state, int trashFlag);

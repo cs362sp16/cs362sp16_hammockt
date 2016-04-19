@@ -20,6 +20,7 @@ struct gameState* newGame()
 }
 
 //formatted
+//This is no longer used! Dead code
 int* kingdomCards(int k1, int k2, int k3, int k4, int k5, int k6, int k7, int k8, int k9, int k10)
 {
 	int* k = malloc(10 * sizeof(int));
@@ -205,6 +206,7 @@ int playCard(int handPos, int choice1, int choice2, int choice3, struct gameStat
 }
 
 //formatted
+//does not deal with embargo
 int buyCard(int supplyPos, struct gameState* state)
 {
 	if(DEBUG)
@@ -733,7 +735,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			discardCard(handPos, currentPlayer, state, 0);
 			return 0;
 
-		case salvager: //if choice is less than player then discard problem
+		case salvager: //if choice is less than salvager then discard problem
 			//+1 buy
 			state->numBuys++;
 

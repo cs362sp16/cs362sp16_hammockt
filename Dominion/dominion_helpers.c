@@ -24,13 +24,7 @@ int drawCard(int player, struct gameState* state)
 	}
 
 	//Draw the Card
-	int count = state->handCount[player];//Get current player's hand count
-	int deckCounter = state->deckCount[player];//Create a holder for the deck count
-
-	//can do this all in one line but will be long and not pretty
-	state->hand[player][count] = state->deck[player][deckCounter - 1];//Add card to hand
-	state->deckCount[player]--;
-	state->handCount[player]++;//Increment hand count
+	PUSH(hand, player, POP_R(deck, player));
 
 	return 0;
 }
@@ -67,8 +61,8 @@ int discardCard(int handPos, int currentPlayer, struct gameState* state, int tra
 		state->playedCardCount++;
 	}
 
-	//remove card from player's hand (decrement hand)
-	state->handCount[currentPlayer]--;
+	//remove card from player's hand
+	POP(hand, currentPlayer);
 	//replace discarded card with last card in hand if not last
 	if(handPos != state->handCount[currentPlayer])
 		state->hand[currentPlayer][handPos] = state->hand[currentPlayer][state->handCount[currentPlayer]]; //safe cause dec
@@ -79,6 +73,7 @@ int discardCard(int handPos, int currentPlayer, struct gameState* state, int tra
 	return 0;
 }
 
+//most calls to discardCard are unsafe after the first, this fixes that
 int safeDiscard(int card, int currentPlayer, struct gameState* state, int trashFlag)
 {
 	for(int i = 0; i < state->handCount[currentPlayer]; ++i)
@@ -103,18 +98,9 @@ int gainCard(int supplyPos, struct gameState* state, int toFlag, int player)
 	// toFlag = 2 : add to hand
 	switch(toFlag)
 	{
-		case 0:
-			state->discard[player][state->discardCount[player]] = supplyPos;
-			state->discardCount[player]++;
-			break;
-		case 1:
-			state->deck[player][state->deckCount[player]] = supplyPos;
-			state->deckCount[player]++;
-			break;
-		case 2:
-			state->hand[player][state->handCount[player]] = supplyPos;
-			state->handCount[player]++;
-			break;
+		case 0: PUSH(discard, player, supplyPos); break;
+		case 1: PUSH(deck, player, supplyPos);    break;
+		case 2: PUSH(hand, player, supplyPos);    break;
 	}
 
 	//decrease number in supply pile

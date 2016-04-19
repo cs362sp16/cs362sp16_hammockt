@@ -9,13 +9,13 @@ int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 		if(drawCard(currentPlayer, state) == -1)
 			break;
 
-		int cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1]; //top card of hand is most recently drawn card.
+		int cardDrawn = TOP(hand, currentPlayer); //top card of hand is most recently drawn card.
 		if(isTreasure(cardDrawn)) //is treasure?
 			drawntreasure++;
 		else
 		{
-			state->discard[currentPlayer][state->discardCount[currentPlayer]++] = cardDrawn; //discard all cards in play that have been drawn
-			state->handCount[currentPlayer]--; //this should just remove the top card (the most recently drawn one).
+			PUSH(discard, currentPlayer, cardDrawn); //discard all cards in play that have been drawn
+			POP(hand, currentPlayer); //this should just remove the top card (the most recently drawn one).
 		}
 	}
 
@@ -44,7 +44,7 @@ int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//there could be a problem with discard order
+//everyone discards at most one card so discard is safe
 int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int j;
@@ -56,7 +56,7 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 			continue;
 
 		//try to discard 1 copper and stop
-		for(j = 0; j < state->handCount[i]; ++j) //can be used for safeDiscard
+		for(j = 0; j < state->handCount[i]; ++j)
 		{
 			if(state->hand[i][j] == copper)
 			{
@@ -92,7 +92,7 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 			//add to discard by taking from deck
 			//puts in hand and deals with deck being empty. Dont discard if deck and discard are empty
 			if(drawCard(i, state) != -1) //drawed a card so discard it and pop from hand
-				state->discard[i][state->discardCount[i]++] = state->hand[i][--state->handCount[i]];
+				PUSH(discard, i, POP_R(hand, i));
 
 			//try to add curse to top of deck
 			gainCard(curse, state, 1, i);
@@ -105,7 +105,6 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
-//there could be a problem with discard order
 int treasureMapEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	//search hand for another treasure_map
@@ -125,7 +124,7 @@ int treasureMapEffect(struct gameState* state, int currentPlayer, int handPos)
 	}
 
 	//always trash this treasure card
-	discardCard(handPos, currentPlayer, state, 1);
+	safeDiscard(treasure_map, currentPlayer, state, 1);
 
 	return 0;
 }
