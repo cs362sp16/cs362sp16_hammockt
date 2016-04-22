@@ -19,24 +19,6 @@ struct gameState* newGame()
 	return (struct gameState*)malloc(sizeof(struct gameState));
 }
 
-//formatted
-//This is no longer used! Dead code
-int* kingdomCards(int k1, int k2, int k3, int k4, int k5, int k6, int k7, int k8, int k9, int k10)
-{
-	int* k = malloc(10 * sizeof(int));
-	k[0] = k1;
-	k[1] = k2;
-	k[2] = k3;
-	k[3] = k4;
-	k[4] = k5;
-	k[5] = k6;
-	k[6] = k7;
-	k[7] = k8;
-	k[8] = k9;
-	k[9] = k10;
-	return k;
-}
-
 //modified
 int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct gameState* state)
 {
@@ -136,11 +118,11 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	state->numBuys = 1;
 	state->playedCardCount = 0;
 	state->whoseTurn = 0;
-	state->handCount[state->whoseTurn] = 0;
 
 	//draw cards here, only drawing at the start of a turn
-	for(int i = 0; i < 5; ++i)
-		drawCard(state->whoseTurn, state);
+	for(int i = 0; i < numPlayers; ++i)
+		for(int j = 0; j < 5; ++j)
+			drawCard(i, state);
 
 	updateCoins(state->whoseTurn, state, 0);
 
@@ -293,24 +275,29 @@ int whoseTurn(struct gameState* state)
 	return state->whoseTurn;
 }
 
+static void moveAll(int* d, int* s, int* dc, int* sc)
+{
+	memcpy(d + *dc, s, *sc * sizeof(int));
+	memset(s, -1, *sc * sizeof(int)); //for now keeping this but will remove later on
+	*dc += *sc;
+	*sc = 0;
+}
+
 //modified
 int endTurn(struct gameState* state)
 {
 	int currentPlayer = whoseTurn(state);
 
-	//move hand into discard, then set hand to -1
-#define discard state->discard[currentPlayer]
-#define discardCount state->discardCount[currentPlayer]
-#define hand state->hand[currentPlayer]
-#define handCount state->handCount[currentPlayer]
-	memcpy(discard + discardCount, hand, handCount * sizeof(int));
-	memset(hand, -1, handCount * sizeof(int));
-	discardCount += handCount; //add hand to discard
-	handCount = 0;//Reset hand count
-#undef discard
-#undef discardCount
-#undef hand
-#undef handCount
+	//move hand into discard
+	moveAll(state->discard[currentPlayer], state->hand[currentPlayer],
+			state->discardCount+currentPlayer, state->handCount+currentPlayer);
+	//move playedCards into discard
+	moveAll(state->discard[currentPlayer], state->playedCards,
+			state->discardCount+currentPlayer, &state->playedCardCount);
+
+	//Next player draws hand
+	for(int i = 0; i < 5; ++i)
+		drawCard(currentPlayer, state);
 
 	//Code for determining the next player
 	state->whoseTurn = (currentPlayer + 1) % state->numPlayers;
@@ -320,12 +307,6 @@ int endTurn(struct gameState* state)
 	state->numActions = 1;
 	state->coins = 0;
 	state->numBuys = 1;
-	state->playedCardCount = 0;
-	state->handCount[state->whoseTurn] = 0;
-
-	//Next player draws hand
-	for(int i = 0; i < 5; ++i)
-		drawCard(state->whoseTurn, state);//Draw a card
 
 	//Update money
 	updateCoins(state->whoseTurn, state , 0);
@@ -582,7 +563,6 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			}
 
 			//discard hand, redraw 4, other players with 5+ cards discard hand and draw 4
-			//discard hand
 			while(state->handCount[currentPlayer] > 0)
 				discardCard(0, currentPlayer, state, 0);
 
@@ -632,15 +612,9 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			for(i = 0; i < 2; ++i) // try to draw/reveal 2 cards
 				drawCard(nextPlayer, state);
 
-			//handle drawing 2 identical cards
+			//handle drawing 2 identical cards. Need to discard [j+1] from hand if true
 			if(state->handCount[nextPlayer] == (j+2) && state->hand[nextPlayer][j] == state->hand[nextPlayer][j+1])
-			{
-				//need to discard [j+1] without using discardCard (it puts it into the played area).
-				state->discard[nextPlayer][state->discardCount[nextPlayer]] = state->hand[nextPlayer][j+1];
-				state->discardCount[nextPlayer]++;
-				//then need to decrement handCount[nextPlayer]
-				discardCard(j+1, nextPlayer, state, 1); //removes from hand but does not move to played area
-			}
+				PUSH(discard, nextPlayer, POP_R(hand, nextPlayer));
 
 			//decrementing so I can process and remove at the same time
 			for(i = state->handCount[nextPlayer]-1; i >= j; --i)
@@ -655,11 +629,8 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				else //Action Card
 					state->numActions += 2;
 
-				//discard the processed card
-				state->discard[nextPlayer][state->discardCount[nextPlayer]] = state->hand[nextPlayer][i];
-				state->discardCount[nextPlayer]++;
-				//then need to decrement handCount[nextPlayer]
-				discardCard(i, nextPlayer, state, 1); //removes from hand but does not move to played area
+				//discard the processed card. Its the top card so we can pop it
+				PUSH(discard, nextPlayer, POP_R(hand, nextPlayer));
 			}
 
 			//discard played card from hand
