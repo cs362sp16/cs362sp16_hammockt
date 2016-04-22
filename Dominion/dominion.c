@@ -67,9 +67,9 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	state->supplyCount[gold] = 30;
 
 	//set number of Kingdom cards
-	for(int i = adventurer; i <= treasure_map; ++i)       	//loop all cards
+	for(int i = adventurer; i <= treasure_map; ++i) //loop all cards
 	{
-		for(j = 0; j < 10; ++j)           		//loop chosen cards
+		for(j = 0; j < 10; ++j) //loop chosen cards
 		{
 			if(kingdomCards[j] == i)
 			{
@@ -409,13 +409,13 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			return councilRoomEffect(state, currentPlayer, handPos);
 
 		case feast: //gain card with cost up to 5
-			//does exist or have supply and cost is less than 5?
-			if(supplyCount(choice1, state) <= 0 || getCost(choice1) > 5)
+			//does exist or have supply?
+			if(supplyCount(choice1, state) <= 0)
 				return -1;
 
-			//Gain the card (in discard)
-			if(gainCard(choice1, state, 0, currentPlayer) == -1)
-				return -1;
+			//Gain the card (in discard) if <= 5
+			if(getCost(choice1) <= 5)
+				gainCard(choice1, state, 0, currentPlayer);
 
 			//must trash it
 			discardCard(handPos, currentPlayer, state, 1);
