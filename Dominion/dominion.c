@@ -249,24 +249,10 @@ int supplyCount(int card, struct gameState* state)
 	return state->supplyCount[card];
 }
 
-//modified
-int fullDeckCount(int player, int card, struct gameState* state)
+//fixed
+int fullDeckCount(int player, struct gameState* state)
 {
-	int count = 0;
-
-	for(int i = 0; i < state->deckCount[player]; ++i)
-		if(state->deck[player][i] == card)
-			count++;
-
-	for(int i = 0; i < state->handCount[player]; ++i)
-		if(state->hand[player][i] == card)
-			count++;
-
-	for(int i = 0; i < state->discardCount[player]; ++i)
-		if(state->discard[player][i] == card)
-			count++;
-
-	return count;
+	return state->deckCount[player] + state->handCount[player] + state->discardCount[player];
 }
 
 //formatted
@@ -343,7 +329,7 @@ static int scoreHelper(int card, int player, struct gameState* state)
 		case duchy:		 return 3;
 		case province:	 return 6;
 		case great_hall: return 1;
-		case gardens:	 return fullDeckCount(player, 0, state) / 10; //bug?
+		case gardens:	 return fullDeckCount(player, state) / 10;
 	}
 	return 0; //if none do not do anything
 }
