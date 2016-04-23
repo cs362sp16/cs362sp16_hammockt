@@ -47,19 +47,11 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	//f(2) = 10, f(3) = 20, f(4) = 30...
 	state->supplyCount[curse] = 10*numPlayers - 10;
 
+	int startingNum = (numPlayers == 2)? 8: 12;
 	//set number of Victory cards
-	if(numPlayers == 2)
-	{
-		state->supplyCount[estate] = 8;
-		state->supplyCount[duchy] = 8;
-		state->supplyCount[province] = 8;
-	}
-	else
-	{
-		state->supplyCount[estate] = 12;
-		state->supplyCount[duchy] = 12;
-		state->supplyCount[province] = 12;
-	}
+	state->supplyCount[estate] = startingNum;
+	state->supplyCount[duchy] = startingNum;
+	state->supplyCount[province] = startingNum;
 
 	//set number of Treasure cards
 	state->supplyCount[copper] = 60 - (7 * numPlayers);
@@ -75,7 +67,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 			{
 				//check if card is a 'Victory' Kingdom card
 				if(kingdomCards[j] == great_hall || kingdomCards[j] == gardens)
-					state->supplyCount[i] = (numPlayers == 2)? 8: 12;
+					state->supplyCount[i] = startingNum;
 				else
 					state->supplyCount[i] = 10;
 
@@ -281,7 +273,7 @@ int endTurn(struct gameState* state)
 	moveAll(state->discard[currentPlayer], state->playedCards,
 			state->discardCount+currentPlayer, &state->playedCardCount);
 
-	//Next player draws hand
+	//player draws new hand
 	for(int i = 0; i < 5; ++i)
 		drawCard(currentPlayer, state);
 
@@ -444,7 +436,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			//discard card from hand and trash treasure
 			discardCard(handPos, currentPlayer, state, 0);
-			discardCard(choice1, currentPlayer, state, 0);
+			discardCard(choice1, currentPlayer, state, 1);
 
 			return 0;
 
@@ -605,6 +597,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			//decrementing so I can process and remove at the same time
 			for(i = state->handCount[nextPlayer]-1; i >= j; --i)
 			{
+				//problem here, cards can be multiple types
 				if(isTreasure(state->hand[nextPlayer][i])) //Treasure cards
 					state->coins += 2;
 				else if(isVictory(state->hand[nextPlayer][i])) //Victory cards
