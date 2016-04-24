@@ -1,6 +1,5 @@
 #include "cardEffects.h"
 
-//everything that adds/messes with coins needs to put it into bonus
 int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	for(int drawntreasure = 0; drawntreasure < 2; )
@@ -49,7 +48,7 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	int j;
 
-	updateCoins(currentPlayer, state, 2); //+2 coins
+	state->coins += 2; //+2 coins
 	for(int i = 0; i < state->numPlayers; ++i)
 	{
 		if(i == currentPlayer) //don't process ourselves

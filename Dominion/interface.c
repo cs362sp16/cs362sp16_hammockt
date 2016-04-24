@@ -11,6 +11,7 @@ Sam Heinith CS362
 #include "rngs.h"
 #include "interface.h"
 #include "dominion.h"
+#include "dominion_helpers.h"
 
 
 void cardNumToName(int card, char *name){
@@ -225,9 +226,9 @@ void printSupply(struct gameState *game) {
 
 void printState(struct gameState *game) {
   int numActions = game->numActions;
-  int numCoins = game->coins;
   int numBuys = game->numBuys;
   int currentPlayer = game->whoseTurn;
+  int numCoins = updateCoins(currentPlayer, game);
   int phase = game->phase;
   char phaseName[MAX_STRING_LENGTH];
   phaseNumToName(phase,phaseName);

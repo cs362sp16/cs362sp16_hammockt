@@ -107,6 +107,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	state->outpostPlayed = 0;
 	state->phase = 0;
 	state->numActions = 1;
+	state->coins = 0;
 	state->numBuys = 1;
 	state->playedCardCount = 0;
 	state->whoseTurn = 0;
@@ -115,8 +116,6 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	for(int i = 0; i < numPlayers; ++i)
 		for(int j = 0; j < 5; ++j)
 			drawCard(i, state);
-
-	updateCoins(state->whoseTurn, state, 0);
 
 	return 0;
 }
@@ -153,8 +152,6 @@ int shuffle(int player, struct gameState* state)
 //modified
 int playCard(int handPos, int choice1, int choice2, int choice3, struct gameState* state)
 {
-	int coin_bonus = 0; //tracks coins gain from actions
-
 	//check if it is the right phase or player has enough actions
 	if(state->phase != 0 || state->numActions < 1)
 		return -1;
@@ -167,14 +164,11 @@ int playCard(int handPos, int choice1, int choice2, int choice3, struct gameStat
 		return -1;
 
 	//play card
-	if(cardEffect(card, choice1, choice2, choice3, state, handPos, &coin_bonus) < 0)
+	if(cardEffect(card, choice1, choice2, choice3, state, handPos) < 0)
 		return -1;
 
 	//reduce number of actions
 	state->numActions--;
-
-	//update coins (Treasure cards may be added with card draws)
-	updateCoins(state->whoseTurn, state, coin_bonus);
 
 	return 0;
 }
@@ -187,6 +181,7 @@ int buyCard(int supplyPos, struct gameState* state)
 		printf("Entering buyCard...\n");
 
 	//I don't know what to do about the phase thing.
+	int totalCoins = updateCoins(state->whoseTurn, state);
 
 	if(state->numBuys < 1)
 	{
@@ -200,10 +195,10 @@ int buyCard(int supplyPos, struct gameState* state)
 			printf("There are not any of that type of card left\n");
 		return -1;
 	}
-	else if(state->coins < getCost(supplyPos))
+	else if(totalCoins < getCost(supplyPos))
 	{
 		if(DEBUG)
-			printf("You do not have enough money to buy that. You have %d coins.\n", state->coins);
+			printf("You do not have enough money to buy that. You have %d coins.\n", totalCoins);
 		return -1;
 	}
 	else
@@ -214,7 +209,7 @@ int buyCard(int supplyPos, struct gameState* state)
 		state->coins -= getCost(supplyPos);
 		state->numBuys--;
 		if(DEBUG)
-			printf("You bought card number %d for %d coins. You now have %d buys and %d coins.\n", supplyPos, getCost(supplyPos), state->numBuys, state->coins);
+			printf("You bought card number %d for %d coins. You now have %d buys and %d coins.\n", supplyPos, getCost(supplyPos), state->numBuys, totalCoins);
 	}
 
 	return 0;
@@ -253,7 +248,7 @@ int whoseTurn(struct gameState* state)
 	return state->whoseTurn;
 }
 
-static void moveAll(int* d, int* s, int* dc, int* sc)
+static void moveAll(int d[], int s[], int* dc, int* sc)
 {
 	memcpy(d + *dc, s, *sc * sizeof(int));
 	memset(s, -1, *sc * sizeof(int)); //for now keeping this but will remove later on
@@ -285,9 +280,6 @@ int endTurn(struct gameState* state)
 	state->numActions = 1;
 	state->coins = 0;
 	state->numBuys = 1;
-
-	//Update money
-	updateCoins(state->whoseTurn, state , 0);
 
 	return 0;
 }
@@ -383,9 +375,8 @@ int getWinners(int players[MAX_PLAYERS], struct gameState* state)
 }
 
 //modified. Leaving this in dominion.c for now
-//everything that adds/messes with coins needs to put it into bonus
 //Also must discard high pos cards first. Which is a problem almost everywhere in here
-int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState* state, int handPos, int* bonus)
+int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState* state, int handPos)
 {
 	int i, j;
 	int currentPlayer = whoseTurn(state);

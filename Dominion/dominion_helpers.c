@@ -30,25 +30,23 @@ int drawCard(int player, struct gameState* state)
 }
 
 //modified
-int updateCoins(int player, struct gameState* state, int bonus)
+int updateCoins(int player, struct gameState* state)
 {
-	//reset coin count
-	state->coins = 0;
+	int totalCoins = 0;
 
 	for(int i = 0; i < state->handCount[player]; ++i)
 	{
 		switch(state->hand[player][i])
 		{
-			case copper: state->coins++; break;
-			case silver: state->coins += 2; break;
-			case gold:   state->coins += 3; break;
+			case copper: totalCoins++; break;
+			case silver: totalCoins += 2; break;
+			case gold:   totalCoins += 3; break;
 		}
 	}
 
-	//add bonus
-	state->coins += bonus;
+	totalCoins += state->coins;
 
-	return 0;
+	return totalCoins;
 }
 
 //modified
