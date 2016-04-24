@@ -101,7 +101,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	memset(state->discardCount, 0, numPlayers * sizeof(int));
 
 	//set embargo tokens to 0 for all supply piles
-	memset(state->embargoTokens, 0, treasure_map * sizeof(int));
+	memset(state->embargoTokens, 0, (treasure_map+1) * sizeof(int));
 
 	//initialize first player's turn
 	state->outpostPlayed = 0;
