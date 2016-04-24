@@ -20,7 +20,7 @@
 #include "rngs.h"
 
 
-int main2(int argc, char *argv[]) {
+int main2() {
 	//Default cards, as defined in playDom
 	int k[10] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, sea_hag, tribute, smithy};
 	struct gameState g;
