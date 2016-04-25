@@ -174,10 +174,9 @@ int playCard(int handPos, int choice1, int choice2, int choice3, struct gameStat
 }
 
 //formatted
-//does not deal with embargo
 int buyCard(int supplyPos, struct gameState* state)
 {
-	//I don't know what to do about the phase thing.
+	//I don't know what to do about the phase thing. Should also check phase
 	int totalCoins = updateCoins(state->whoseTurn, state);
 
 	if(state->numBuys < 1)
@@ -190,6 +189,8 @@ int buyCard(int supplyPos, struct gameState* state)
 	{
 		state->phase = 1;
 		gainCard(supplyPos, state, 0, state->whoseTurn); //card goes in discard
+		for(int i = 0; i < state->embargoTokens[supplyPos]; ++i) //can maybe optimize when curses run out
+			gainCard(curse, state, 0, state->whoseTurn);
 
 		state->coins -= getCost(supplyPos);
 		state->numBuys--;
@@ -240,6 +241,7 @@ static void moveAll(int d[], int s[], int* dc, int* sc)
 }
 
 //modified
+//does not deal with outpost
 int endTurn(struct gameState* state)
 {
 	int currentPlayer = whoseTurn(state);
@@ -631,7 +633,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			state->coins += 2;
 
 			//see if selected pile is in play. This is a bug
-			if(state->supplyCount[choice1] == -1)
+			if(supplyCount(choice1, state) < 1)
 				return -1;
 
 			//add embargo token to selected supply pile
