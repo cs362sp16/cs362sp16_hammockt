@@ -177,30 +177,15 @@ int playCard(int handPos, int choice1, int choice2, int choice3, struct gameStat
 //does not deal with embargo
 int buyCard(int supplyPos, struct gameState* state)
 {
-	if(DEBUG)
-		printf("Entering buyCard...\n");
-
 	//I don't know what to do about the phase thing.
 	int totalCoins = updateCoins(state->whoseTurn, state);
 
 	if(state->numBuys < 1)
-	{
-		if(DEBUG)
-			printf("You do not have any buys left\n");
 		return -1;
-	}
 	else if(supplyCount(supplyPos, state) < 1)
-	{
-		if (DEBUG)
-			printf("There are not any of that type of card left\n");
 		return -1;
-	}
 	else if(totalCoins < getCost(supplyPos))
-	{
-		if(DEBUG)
-			printf("You do not have enough money to buy that. You have %d coins.\n", totalCoins);
 		return -1;
-	}
 	else
 	{
 		state->phase = 1;
@@ -208,8 +193,6 @@ int buyCard(int supplyPos, struct gameState* state)
 
 		state->coins -= getCost(supplyPos);
 		state->numBuys--;
-		if(DEBUG)
-			printf("You bought card number %d for %d coins. You now have %d buys and %d coins.\n", supplyPos, getCost(supplyPos), state->numBuys, totalCoins);
 	}
 
 	return 0;
@@ -473,37 +456,27 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			discardCard(handPos, currentPlayer, state, 0);
 			return 0;
 
-		case baron: //can be simplified with goto
+		case baron: //+1 buy. discard estate and get +4 coins...or gain an estate
+			state->numBuys++;
+
 			if(choice1) //Boolean true or going to discard an estate
 			{
 				for(i = 0; i < state->handCount[currentPlayer]; ++i)
 				{
 					if(state->hand[currentPlayer][i] == estate)
 					{
-						state->numBuys++;//Increase buys by 1!
 						state->coins += 4;
-						discardCard(handPos, currentPlayer, state, 0); //discard baron
 						discardCard(i, currentPlayer, state, 0); //discard estate
+						safeDiscard(baron, currentPlayer, state, 0); //discard baron
 						return 0;
 					}
 				}
 
-				//could not find estate. Warn them instead of giving them an estate
-				if(DEBUG)
-				{
-					printf("No estate cards in your hand, invalid choice\n");
-					printf("Must gain an estate if there are any\n");
-				}
-				return -1;
+				//could not find estate. Must acquire one
 			}
 
-			if(gainCard(estate, state, 0, currentPlayer) == -1) //for now it just continues to play
-			{
-				if(DEBUG)
-					printf("No estates left in the supply. Cannot obtain one\n");
-			}
+			gainCard(estate, state, 0, currentPlayer); //try to get estate
 
-			state->numBuys++;//Increase buys by 1!
 			discardCard(handPos, currentPlayer, state, 0); //discard baron
 			return 0;
 
