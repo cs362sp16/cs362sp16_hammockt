@@ -168,7 +168,7 @@ int playCard(int handPos, int choice1, int choice2, int choice3, struct gameStat
 //formatted
 int buyCard(int supplyPos, struct gameState* state)
 {
-	//I don't know what to do about the phase thing. Should also check phase
+	//I don't know what to do about the phase thing. Should check phase
 	int totalCoins = updateCoins(state->whoseTurn, state);
 
 	if(state->numBuys < 1)
@@ -636,7 +636,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			if(choice1)
 			{
 				//gain coins equal to trashed card
-				state->coins += getCost(handCard(choice1, state));
+				state->coins += getCost(state->hand[currentPlayer][choice1]);
 				//trash card
 				discardCard(choice1, currentPlayer, state, 1);
 			}

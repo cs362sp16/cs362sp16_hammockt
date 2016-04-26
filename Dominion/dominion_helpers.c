@@ -168,3 +168,26 @@ int isTreasure(int card)
 {
 	return (card >= copper && card <= gold);
 }
+
+int isBasic(int card)
+{
+	switch(card)
+	{
+		case copper:
+		case silver:
+		case gold:
+
+		case estate:
+		case duchy:
+		case province:
+
+		case curse: return 1;	
+	}
+
+	return 0;
+}
+
+int isKingdom(int card)
+{
+	return !isBasic(card);
+}
