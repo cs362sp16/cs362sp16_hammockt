@@ -20,6 +20,7 @@ struct gameState* newGame()
 }
 
 //modified
+//if kingdomCards contains non-kingdom cards then this will fail
 int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct gameState* state)
 {
 	int j;
@@ -42,6 +43,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 
 	//initialize supply
 	///////////////////////////////
+	memset(state->supplyCount, -1, sizeof(state->supplyCount));
 
 	//set number of Curse cards. f(x) = 10x - 10, so long as x > 1 (which we have)
 	//f(2) = 10, f(3) = 20, f(4) = 30...
@@ -59,23 +61,13 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	state->supplyCount[gold] = 30;
 
 	//set number of Kingdom cards
-	for(int i = adventurer; i <= treasure_map; ++i) //loop all cards
+	for(int i = 0; i < 10; ++i)
 	{
-		for(j = 0; j < 10; ++j) //loop chosen cards
-		{
-			if(kingdomCards[j] == i)
-			{
-				//check if card is a 'Victory' Kingdom card
-				if(kingdomCards[j] == great_hall || kingdomCards[j] == gardens)
-					state->supplyCount[i] = startingNum;
-				else
-					state->supplyCount[i] = 10;
-
-				break;
-			}
-			else    //card is not in the set choosen for the game
-				state->supplyCount[i] = -1;
-		}
+		int kCard = kingdomCards[i];
+		if(kCard == great_hall || kCard == gardens)
+			state->supplyCount[kCard] = startingNum;
+		else
+			state->supplyCount[kCard] = 10;
 	}
 
 	////////////////////////
@@ -101,7 +93,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	memset(state->discardCount, 0, numPlayers * sizeof(int));
 
 	//set embargo tokens to 0 for all supply piles
-	memset(state->embargoTokens, 0, (treasure_map+1) * sizeof(int));
+	memset(state->embargoTokens, 0, sizeof(state->embargoTokens));
 
 	//initialize first player's turn
 	state->outpostPlayed = 0;
@@ -114,7 +106,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 
 	//draw cards here, only drawing at the start of a turn
 	for(int i = 0; i < numPlayers; ++i)
-		for(int j = 0; j < 5; ++j)
+		for(j = 0; j < 5; ++j)
 			drawCard(i, state);
 
 	return 0;
@@ -283,13 +275,10 @@ int isGameOver(struct gameState* state)
 		if(state->supplyCount[i] == 0)
 			emptySupply++;
 
-	if(emptySupply >= 3)
-		return 1;
-
-	return 0;
+	return (emptySupply >= 3);
 }
 
-static int scoreHelper(int card, int player, struct gameState* state)
+static int scoreHelper(int card, int gardenVal)
 {
 	switch(card)
 	{
@@ -298,7 +287,7 @@ static int scoreHelper(int card, int player, struct gameState* state)
 		case duchy:		 return 3;
 		case province:	 return 6;
 		case great_hall: return 1;
-		case gardens:	 return fullDeckCount(player, state) / 10;
+		case gardens:	 return gardenVal;
 	}
 	return 0; //if none do not do anything
 }
@@ -306,19 +295,19 @@ static int scoreHelper(int card, int player, struct gameState* state)
 //modified
 int scoreFor(int player, struct gameState* state)
 {
-	int score = 0;
+	int score = 0, gardenVal = fullDeckCount(player, state) / 10;
 
 	//score from hand
 	for(int i = 0; i < state->handCount[player]; ++i)
-		score += scoreHelper(state->hand[player][i], player, state);
+		score += scoreHelper(state->hand[player][i], gardenVal);
 
 	//score from discard
 	for(int i = 0; i < state->discardCount[player]; ++i)
-		score += scoreHelper(state->discard[player][i], player, state);
+		score += scoreHelper(state->discard[player][i], gardenVal);
 
 	//score from deck
 	for(int i = 0; i < state->deckCount[player]; ++i)
-		score += scoreHelper(state->deck[player][i], player, state);
+		score += scoreHelper(state->deck[player][i], gardenVal);
 
 	return score;
 }
@@ -396,11 +385,11 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				return -1;
 
 			//needs to be a treasure card. If mine is only card then this returns
-			if(state->hand[currentPlayer][choice1] < copper || state->hand[currentPlayer][choice1] > gold)
+			if(!isTreasure(state->hand[currentPlayer][choice1]))
 				return -1;
 
 			//need to gain a treasure card (nothing else). Handles out of bounds input. Handles empty supply
-			if(supplyCount(choice2, state) <= 0 || choice2 < copper || choice2 > gold)
+			if(supplyCount(choice2, state) <= 0 || !isTreasure(choice2))
 				return -1;
 
 			//can trade a gold/silver for copper
@@ -507,6 +496,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			}
 
 			//discard hand, redraw 4, other players with 5+ cards discard hand and draw 4
+			//can use moveAll here
 			while(state->handCount[currentPlayer] > 0)
 				discardCard(0, currentPlayer, state, 0);
 
@@ -583,52 +573,40 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
-		case ambassador:
-			j = 0;		//used to check if player has enough cards to discard
-
-			if(choice2 > 2 || choice2 < 0 || choice1 == handPos)
+		//can be problem here if card chosen is not in supply but not currently possible due to card selection
+		//need to test this!
+		case ambassador: //reveal a card from hand, return up to 2 of it from hand to supply, then each player gains a copy of it
+			//choice1 = pos of card to reveal, choice2 = # to return to supply
+			if(choice1 < 0 || choice1 >= state->handCount[currentPlayer])
 				return -1;
-
-			for(i = 0; i < state->handCount[currentPlayer]; i++)
-				if(i != handPos && i == state->hand[currentPlayer][choice1] && i != choice1)
-					j++;
-
-			if(j < choice2)
+			//passes this then we have at least 2 cards in hand
+			if(choice2 > 2 || choice2 < 0 || choice1 == handPos)
 				return -1;
 
 			if(DEBUG)
 				printf("Player %d reveals card number: %d\n", currentPlayer, state->hand[currentPlayer][choice1]);
 
-			//increase supply count for choosen card by amount being discarded
-			state->supplyCount[state->hand[currentPlayer][choice1]] += choice2;
+			int card = state->hand[currentPlayer][choice1];
+			for(i = 0, j = 0; i < choice2; ++i)
+				if(safeDiscard(card, currentPlayer, state, 1) != -1)
+					++j;
 
-			//each other player gains a copy of revealed card
-			for(i = 0; i < state->numPlayers; i++)
+			//in case they have less then choice2
+			state->supplyCount[card] += j;
+
+			//each other player gains a copy of revealed card. Okay due to if's guaranteeing 2 cards in hand
+			for(i = 0; i < state->numPlayers; ++i)
 				if(i != currentPlayer)
-					gainCard(state->hand[currentPlayer][choice1], state, 0, i);
+					gainCard(card, state, 0, i);
 
 			//discard played card from hand
-			discardCard(handPos, currentPlayer, state, 0);
-
-			//trash copies of cards returned to supply
-			for(j = 0; j < choice2; j++)
-			{
-				for(i = 0; i < state->handCount[currentPlayer]; i++)
-				{
-					if(state->hand[currentPlayer][i] == state->hand[currentPlayer][choice1])
-					{
-						discardCard(i, currentPlayer, state, 1);
-						break;
-					}
-				}
-			}
-
+			safeDiscard(ambassador, currentPlayer, state, 0);
 			return 0;
 
 		case cutpurse:
 			return cutpurseEffect(state, currentPlayer, handPos);
 
-		case embargo:
+		case embargo: //+2 coins and place embargo token on a supply pile
 			//+2 Coins
 			state->coins += 2;
 
