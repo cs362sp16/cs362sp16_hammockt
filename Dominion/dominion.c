@@ -297,6 +297,9 @@ int scoreFor(int player, struct gameState* state)
 {
 	int score = 0, gardenVal = fullDeckCount(player, state) / 10;
 
+	if(player < 0 || player >= state->numPlayers)
+		return -9999;
+
 	//score from hand
 	for(int i = 0; i < state->handCount[player]; ++i)
 		score += scoreHelper(state->hand[player][i], gardenVal);
