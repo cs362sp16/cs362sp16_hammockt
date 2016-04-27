@@ -1,6 +1,6 @@
 #include "cardEffects.h"
 
-int adventureEffect(struct gameState* state, int currentPlayer, int handPos)
+int adventurerEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	for(int drawntreasure = 0; drawntreasure < 2; )
 	{
@@ -40,6 +40,40 @@ int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 	//put played card in played card pile
 	discardCard(handPos, currentPlayer, state, 0);
 
+	return 0;
+}
+
+//can be problem here if card chosen is not in supply but not currently possible due to card selection
+int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, int choice1, int choice2)
+{
+	//choice1 = pos of card to reveal, choice2 = # to return to supply
+	if(choice1 < 0 || choice1 >= state->handCount[currentPlayer])
+		return -1;
+	//passes this then we have at least 2 cards in hand
+	if(choice2 > 2 || choice2 < 0 || choice1 == handPos)
+		return -1;
+
+	#if DEBUG
+		printf("Player %d reveals card number: %d\n", currentPlayer, state->hand[currentPlayer][choice1]);
+	#endif
+
+	int card = state->hand[currentPlayer][choice1];
+	int numOccur = 0;
+	for(int i = 0; i < choice2; ++i)
+		if(safeDiscard(card, currentPlayer, state, 1) != -1)
+			++numOccur;
+
+	//in case they have less then choice2
+	state->supplyCount[card] += numOccur;
+
+	//each other player gains a copy of revealed card
+	//its suppose to start after currentPlayer and matters when supply runs out
+	for(int i = 0; i < state->numPlayers; ++i)
+		if(i != currentPlayer)
+			gainCard(card, state, 0, i);
+
+	//discard played card from hand
+	safeDiscard(ambassador, currentPlayer, state, 0);
 	return 0;
 }
 

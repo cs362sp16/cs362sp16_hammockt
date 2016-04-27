@@ -328,6 +328,7 @@ int getWinners(int players[MAX_PLAYERS], struct gameState* state)
 			highScore = players[i];
 	}
 
+	//can remove now thanks to scoreFor
 	for(; i < MAX_PLAYERS; ++i)
 		players[i] = -9999;
 
@@ -363,7 +364,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 	switch(card)
 	{
 		case adventurer:
-			return adventureEffect(state, currentPlayer, handPos);
+			return adventurerEffect(state, currentPlayer, handPos);
 
 		case council_room:
 			return councilRoomEffect(state, currentPlayer, handPos);
@@ -576,35 +577,8 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
-		//can be problem here if card chosen is not in supply but not currently possible due to card selection
-		//need to test this!
-		case ambassador: //reveal a card from hand, return up to 2 of it from hand to supply, then each player gains a copy of it
-			//choice1 = pos of card to reveal, choice2 = # to return to supply
-			if(choice1 < 0 || choice1 >= state->handCount[currentPlayer])
-				return -1;
-			//passes this then we have at least 2 cards in hand
-			if(choice2 > 2 || choice2 < 0 || choice1 == handPos)
-				return -1;
-
-			if(DEBUG)
-				printf("Player %d reveals card number: %d\n", currentPlayer, state->hand[currentPlayer][choice1]);
-
-			int card = state->hand[currentPlayer][choice1];
-			for(i = 0, j = 0; i < choice2; ++i)
-				if(safeDiscard(card, currentPlayer, state, 1) != -1)
-					++j;
-
-			//in case they have less then choice2
-			state->supplyCount[card] += j;
-
-			//each other player gains a copy of revealed card. Okay due to if's guaranteeing 2 cards in hand
-			for(i = 0; i < state->numPlayers; ++i)
-				if(i != currentPlayer)
-					gainCard(card, state, 0, i);
-
-			//discard played card from hand
-			safeDiscard(ambassador, currentPlayer, state, 0);
-			return 0;
+		case ambassador:
+			return ambassadorEffect(state, currentPlayer, handPos, choice1, choice2);
 
 		case cutpurse:
 			return cutpurseEffect(state, currentPlayer, handPos);

@@ -5,10 +5,13 @@
 #include "dominion_helpers.h"
 
 //draws until you get 2 treasure cards (copper, silver, or gold). Discards all other cards
-int adventureEffect(struct gameState* state, int currentPlayer, int handPos);
+int adventurerEffect(struct gameState* state, int currentPlayer, int handPos);
 
 //draw 4 for player, then 1 for everyone else
 int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos);
+
+//reveal a card from hand, return up to 2 of it from hand to supply, then each other player gains a copy of it
+int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, int choice1, int choice2);
 
 //+2 coins, everyone else must dispose 1 copper...if not then reveal hand
 int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos);
