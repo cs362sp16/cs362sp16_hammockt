@@ -43,6 +43,32 @@ int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 	return 0;
 }
 
+int baronEffect(struct gameState* state, int currentPlayer, int handPos, int choice1)
+{
+	state->numBuys++;
+
+	if(choice1) //Boolean true or going to discard an estate
+	{
+		for(int i = 0; i < state->handCount[currentPlayer]; ++i)
+		{
+			if(state->hand[currentPlayer][i] == estate)
+			{
+				state->coins += 4;
+				discardCard(i, currentPlayer, state, 0); //discard estate
+				safeDiscard(baron, currentPlayer, state, 0); //discard baron
+				return 0;
+			}
+		}
+
+		//could not find estate. Must acquire one
+	}
+
+	gainCard(estate, state, 0, currentPlayer); //try to get estate
+
+	discardCard(handPos, currentPlayer, state, 0); //discard baron
+	return 0;
+}
+
 //can be problem here if card chosen is not in supply but not currently possible due to card selection
 int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, int choice1, int choice2)
 {
@@ -113,6 +139,28 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 	//discard played card from hand
 	discardCard(handPos, currentPlayer, state, 0);
 
+	return 0;
+}
+
+int salvagerEffect(struct gameState* state, int currentPlayer, int handPos, int choice1)
+{
+	if(choice1 < 0 || choice1 >= state->handCount[currentPlayer])
+		return -1;
+	if(choice1 == handPos && state->handCount[currentPlayer] > 1)
+		return -1;
+
+	state->numBuys++;
+
+	if(choice1 != handPos)
+	{
+		//gain coins equal to trashed card
+		state->coins += getCost(state->hand[currentPlayer][choice1]);
+		//trash card
+		discardCard(choice1, currentPlayer, state, 1);
+	}
+
+	//discard salvager
+	safeDiscard(salvager, currentPlayer, state, 0);
 	return 0;
 }
 

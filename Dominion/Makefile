@@ -29,5 +29,17 @@ unittest4: dominion.o
 cardtest1: dominion.o
 	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
 
+cardtest2: dominion.o
+	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+
+cardtest3: dominion.o
+	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+
+cardtest4: dominion.o
+	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+
+unittestresults.out: unittest1 unittest2 unittest3 unittest4 cardtest1 cardtest2 cardtest3 cardtest4
+	bash runUnitTests.sh > $@
+
 clean:
 	rm -f *.o playdom player unittest1 unittest2 unittest3 unittest4 cardtest1 cardtest2 cardtest3 cardtest4 *.gcov *.gcda *.gcno *.so *.a *.dSYM

@@ -1,0 +1,28 @@
+////////////////////////////
+/// Assignment 2 Testing ///
+////////////////////////////
+
+Results
+-After running all of the tests the results do not suprise me at all.
+ Tests that I expected to pass passed and tests that I knew were going
+ to fail failed (due to dominion.c being terrible and not implementing
+ some card functionallity).
+
+-I have spent a decent chunk of time fixing and refactoring dominion
+ so I only tested functions that I have heavily modified and wanted
+ to verify their correctness (which is why less assertions failed).
+ I also moved some dominion_helper and card code into their own files
+ which exaggerated the dominion code coverage and I'm pretty sure
+ cardEffects coverage is more accurate of the entire code (~50%).
+
+-I managed to achieve 100% statement coverage for all of the functions
+ and cards that I tested which was one of my targets. I also tried
+ feeding valid input, non-valid input, and some 1/1000 chance input to
+ see how the code will react which was my final target. The tests are
+ kind of long and I used some dominion_helper shortcuts to simplify it
+ but doing so without it would have been insane and require much much
+ more testing code to achieve the same effect.
+
+-unittest4 was the only one that failed but that is because it tests
+ endTurn which needs to handle outpost and gameOvers which was not in
+ the original code and I have yet to implement that myself.

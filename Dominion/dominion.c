@@ -451,29 +451,8 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			discardCard(handPos, currentPlayer, state, 0);
 			return 0;
 
-		case baron: //+1 buy. discard estate and get +4 coins...or gain an estate
-			state->numBuys++;
-
-			if(choice1) //Boolean true or going to discard an estate
-			{
-				for(i = 0; i < state->handCount[currentPlayer]; ++i)
-				{
-					if(state->hand[currentPlayer][i] == estate)
-					{
-						state->coins += 4;
-						discardCard(i, currentPlayer, state, 0); //discard estate
-						safeDiscard(baron, currentPlayer, state, 0); //discard baron
-						return 0;
-					}
-				}
-
-				//could not find estate. Must acquire one
-			}
-
-			gainCard(estate, state, 0, currentPlayer); //try to get estate
-
-			discardCard(handPos, currentPlayer, state, 0); //discard baron
-			return 0;
+		case baron:
+			return baronEffect(state, currentPlayer, handPos, choice1);
 
 		case great_hall:
 			//+1 Card
@@ -606,21 +585,8 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			discardCard(handPos, currentPlayer, state, 0);
 			return 0;
 
-		case salvager: //if choice is less than salvager then discard problem
-			//+1 buy
-			state->numBuys++;
-
-			if(choice1)
-			{
-				//gain coins equal to trashed card
-				state->coins += getCost(state->hand[currentPlayer][choice1]);
-				//trash card
-				discardCard(choice1, currentPlayer, state, 1);
-			}
-
-			//discard card
-			discardCard(handPos, currentPlayer, state, 0);
-			return 0;
+		case salvager:
+			return salvagerEffect(state, currentPlayer, handPos, choice1);
 
 		case sea_hag:
 			return seaHagEffect(state, currentPlayer, handPos);
