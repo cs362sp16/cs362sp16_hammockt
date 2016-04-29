@@ -20,7 +20,6 @@ struct gameState* newGame()
 }
 
 //modified
-//if kingdomCards contains non-kingdom cards then this will fail
 int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct gameState* state)
 {
 	int j;
@@ -34,6 +33,11 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 
 	//set number of players
 	state->numPlayers = numPlayers;
+
+	//check that kingdom cards are actually kingdom cards
+	for(int i = 0; i < 10; ++i)
+		if(!isKingdom(kingdomCards[i]))
+			return -1;
 
 	//check selected kingdom cards are different
 	for(int i = 0; i < 9; ++i) //10 - 1
@@ -64,7 +68,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	for(int i = 0; i < 10; ++i)
 	{
 		int kCard = kingdomCards[i];
-		if(kCard == great_hall || kCard == gardens)
+		if(isVictory(kCard)) //victory kingdom card?
 			state->supplyCount[kCard] = startingNum;
 		else
 			state->supplyCount[kCard] = 10;
@@ -170,11 +174,7 @@ int buyCard(int supplyPos, struct gameState* state)
 	//I don't know what to do about the phase thing. Should check phase
 	int totalCoins = updateCoins(state->whoseTurn, state);
 
-	if(state->numBuys < 1)
-		return -1;
-	else if(supplyCount(supplyPos, state) < 1)
-		return -1;
-	else if(totalCoins < getCost(supplyPos))
+	if(state->numBuys < 1 || supplyCount(supplyPos, state) < 1 || totalCoins < getCost(supplyPos))
 		return -1;
 	else
 	{

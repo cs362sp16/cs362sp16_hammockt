@@ -195,5 +195,5 @@ int isBasic(int card)
 
 int isKingdom(int card)
 {
-	return !isBasic(card);
+	return (!isBasic(card) && card >= curse && card <= treasure_map);
 }
