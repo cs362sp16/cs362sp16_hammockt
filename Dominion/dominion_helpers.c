@@ -29,6 +29,12 @@ int drawCard(int player, struct gameState* state)
 	return 0;
 }
 
+void drawCards(int player, struct gameState* state, int numCards)
+{
+	for(int i = 0; i < numCards; ++i)
+		drawCard(player, state);
+}
+
 //modified
 int updateCoins(int player, struct gameState* state)
 {

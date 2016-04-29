@@ -106,8 +106,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 
 	//draw cards here, only drawing at the start of a turn
 	for(int i = 0; i < numPlayers; ++i)
-		for(j = 0; j < 5; ++j)
-			drawCard(i, state);
+		drawCards(i, state, 5);
 
 	return 0;
 }
@@ -246,8 +245,7 @@ int endTurn(struct gameState* state)
 			state->discardCount+currentPlayer, &state->playedCardCount);
 
 	//player draws new hand
-	for(int i = 0; i < 5; ++i)
-		drawCard(currentPlayer, state);
+	drawCards(currentPlayer, state, 5);
 
 	//Code for determining the next player
 	state->whoseTurn = (currentPlayer + 1) % state->numPlayers;
@@ -433,8 +431,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 		case smithy:
 			//+3 Cards
-			for(i = 0; i < 3; ++i)
-				drawCard(currentPlayer, state);
+			drawCards(currentPlayer, state, 3);
 
 			//discard card from hand
 			discardCard(handPos, currentPlayer, state, 0);
@@ -484,8 +481,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				discardCard(0, currentPlayer, state, 0);
 
 			//draw 4
-			for(i = 0; i < 4; ++i)
-				drawCard(currentPlayer, state);
+			drawCards(currentPlayer, state, 4);
 
 			//other players discard hand and redraw if hand size >= 5
 			for(i = 0; i < state->numPlayers; ++i)
@@ -497,8 +493,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 						discardCard(0, i, state, 0);
 
 					//draw 4
-					for(j = 0; j < 4; ++j)
-						drawCard(i, state);
+					drawCards(i, state, 4);
 				}
 			}
 
@@ -506,10 +501,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 		case steward: //there is a problem here possibly with how cards need to be discarded
 			if(choice1 == 1) //+2 cards
-			{
-				drawCard(currentPlayer, state);
-				drawCard(currentPlayer, state);
-			}
+				drawCards(currentPlayer, state, 2);
 			else if(choice1 == 2) //+2 coins
 				state->coins += 2;
 			else //need to check choice2 and choice3 here
@@ -526,8 +518,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 		case tribute: //some code duplication here but works
 			j = state->handCount[nextPlayer]; //pos of interest
-			for(i = 0; i < 2; ++i) // try to draw/reveal 2 cards
-				drawCard(nextPlayer, state);
+			drawCards(nextPlayer, state, 2); //try to draw/reveal 2 cards
 
 			//handle drawing 2 identical cards. Need to discard [j+1] from hand if true
 			if(state->handCount[nextPlayer] == (j+2) && state->hand[nextPlayer][j] == state->hand[nextPlayer][j+1])
@@ -540,10 +531,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				if(isTreasure(state->hand[nextPlayer][i])) //Treasure cards
 					state->coins += 2;
 				else if(isVictory(state->hand[nextPlayer][i])) //Victory cards
-				{
-					drawCard(currentPlayer, state);
-					drawCard(currentPlayer, state);
-				}
+					drawCards(currentPlayer, state, 2);
 				else //Action Card
 					state->numActions += 2;
 

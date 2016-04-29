@@ -26,13 +26,13 @@ int adventurerEffect(struct gameState* state, int currentPlayer, int handPos)
 
 int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	//Everyone gets 1 card
+	//Everyone else gets 1 card
 	for(int i = 0; i < state->numPlayers; ++i)
-		drawCard(i, state);
+		if(i != currentPlayer)
+			drawCard(i, state);
 
-	//+3 cards for the player. +4 total for player
-	for(int i = 0; i < 3; ++i)
-		drawCard(currentPlayer, state);
+	//+4 cards for player
+	drawCards(currentPlayer, state, 4);
 
 	//+1 Buy
 	state->numBuys++;
