@@ -35,15 +35,15 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	state->numPlayers = numPlayers;
 
 	//check that kingdom cards are actually kingdom cards
+	//check selected kingdom cards are different
 	for(int i = 0; i < 10; ++i)
+	{
 		if(!isKingdom(kingdomCards[i]))
 			return -1;
-
-	//check selected kingdom cards are different
-	for(int i = 0; i < 9; ++i) //10 - 1
 		for(j = i+1; j < 10; ++j)
 			if(kingdomCards[j] == kingdomCards[i])
 				return -1;
+	}
 
 	//initialize supply
 	///////////////////////////////
@@ -68,23 +68,23 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	for(int i = 0; i < 10; ++i)
 	{
 		int kCard = kingdomCards[i];
-		if(isVictory(kCard)) //victory kingdom card?
-			state->supplyCount[kCard] = startingNum;
-		else
-			state->supplyCount[kCard] = 10;
+		//victory kingdom card?
+		state->supplyCount[kCard] = (isVictory(kCard))? startingNum: 10;
 	}
 
 	////////////////////////
 	//supply intilization complete
 
 	//set player decks
-	for(int i = 0; i < numPlayers; ++i)
+	state->deckCount[0] = 10;
+	for(j = 0; j < 3; ++j) //first 3 are estate
+		state->deck[0][j] = estate;
+	for(; j < 10; ++j) //last 7 are copper
+		state->deck[0][j] = copper;
+	for(int i = 1; i < numPlayers; ++i)
 	{
 		state->deckCount[i] = 10;
-		for(j = 0; j < 3; ++j) //first 3 are estate
-			state->deck[i][j] = estate;
-		for(; j < 10; ++j) //last 7 are copper
-			state->deck[i][j] = copper;
+		memcpy(state->deck[i], state->deck[0], state->deckCount[i] * sizeof(int));
 	}
 
 	//shuffle player decks
@@ -100,6 +100,7 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	memset(state->embargoTokens, 0, sizeof(state->embargoTokens));
 
 	//initialize first player's turn
+	state->outpostTurn = 0;
 	state->outpostPlayed = 0;
 	state->phase = 0;
 	state->numActions = 1;
@@ -232,7 +233,6 @@ static void moveAll(int d[], int s[], int* dc, int* sc)
 }
 
 //modified
-//does not deal with outpost
 int endTurn(struct gameState* state)
 {
 	int currentPlayer = whoseTurn(state);
@@ -244,11 +244,32 @@ int endTurn(struct gameState* state)
 	moveAll(state->discard[currentPlayer], state->playedCards,
 			state->discardCount+currentPlayer, &state->playedCardCount);
 
-	//player draws new hand
-	drawCards(currentPlayer, state, 5);
+	//trashed outpost for performance so put it back into playedCards
+	if(state->outpostPlayed)
+		state->playedCards[state->playedCardCount++] = outpost;
 
-	//Code for determining the next player
-	state->whoseTurn = (currentPlayer + 1) % state->numPlayers;
+	if(isGameOver(state))
+	{
+		//playedCards needs to be empty when the game is over
+		if(state->outpostPlayed)
+			PUSH(discard, currentPlayer, state->playedCards[--state->playedCardCount]);
+		return 0;
+	}
+
+	if(!state->outpostPlayed)
+	{
+		//player draws new hand
+		drawCards(currentPlayer, state, 5);
+
+		//Code for determining the next player
+		state->whoseTurn = (currentPlayer + 1) % state->numPlayers;
+		state->outpostTurn = 0;
+	}
+	else
+	{
+		drawCards(currentPlayer, state, 3);
+		state->outpostTurn = 1;
+	}
 
 	state->outpostPlayed = 0;
 	state->phase = 0;
@@ -566,11 +587,11 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			return 0;
 
 		case outpost:
-			//set outpost flag
-			state->outpostPlayed++;
+			if(!state->outpostTurn)
+				state->outpostPlayed = 1;
 
-			//discard card
-			discardCard(handPos, currentPlayer, state, 0);
+			//trash card (for performance reasons)
+			discardCard(handPos, currentPlayer, state, 1);
 			return 0;
 
 		case salvager:
