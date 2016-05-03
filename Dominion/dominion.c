@@ -227,7 +227,7 @@ int whoseTurn(struct gameState* state)
 static void moveAll(int d[], int s[], int* dc, int* sc)
 {
 	memcpy(d + *dc, s, *sc * sizeof(int));
-	memset(s, -1, *sc * sizeof(int)); //for now keeping this but will remove later on
+	//memset(s, -1, *sc * sizeof(int));
 	*dc += *sc;
 	*sc = 0;
 }

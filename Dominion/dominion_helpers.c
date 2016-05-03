@@ -14,7 +14,7 @@ int drawCard(int player, struct gameState* state)
 		//Step 1 Shuffle the discard pile back into a deck
 		//Move discard to deck & clear discard to -1 (for now)
 		memcpy(state->deck[player], state->discard[player], state->discardCount[player] * sizeof(int));
-		memset(state->discard[player], -1, state->discardCount[player] * sizeof(int)); //nbytes = count * int
+		//memset(state->discard[player], -1, state->discardCount[player] * sizeof(int)); //nbytes = count * int
 
 		state->deckCount[player] = state->discardCount[player];
 		state->discardCount[player] = 0;//Reset discard
@@ -72,7 +72,7 @@ int discardCard(int handPos, int currentPlayer, struct gameState* state, int tra
 		state->hand[currentPlayer][handPos] = state->hand[currentPlayer][state->handCount[currentPlayer]]; //safe cause dec
 
 	//set last card to -1
-	state->hand[currentPlayer][state->handCount[currentPlayer]] = -1; //safe cause dec
+	//state->hand[currentPlayer][state->handCount[currentPlayer]] = -1; //safe cause dec
 
 	return 0;
 }

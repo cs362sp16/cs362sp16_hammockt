@@ -106,34 +106,31 @@ int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, in
 //everyone discards at most one card so discard is safe
 int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	int j;
-
 	state->coins += 2; //+2 coins
+
 	for(int i = 0; i < state->numPlayers; ++i)
 	{
 		if(i == currentPlayer) //don't process ourselves
 			continue;
 
 		//try to discard 1 copper and stop
-		for(j = 0; j < state->handCount[i]; ++j)
+		for(int j = 0; j < state->handCount[i]; ++j)
 		{
 			if(state->hand[i][j] == copper)
 			{
 				discardCard(j, i, state, 0); //handPos, currentPlayer
-				break;
+				goto LOOP_UPDATE; //skip over card reveal
 			}
 		}
 
-		//did we check every card? if yes then j will be...
-		if(j == state->handCount[i])
+		//did we check every card? if yes then goto will not skip over this
+		for(int j = 0; j < state->handCount[i]; ++j) //can optimize here but code might break if handCount < 0
 		{
-			for(j = 0; j < state->handCount[i]; ++j) //can do optimize here but code might set (handCount < 0)
-			{
-				#if DEBUG
-					printf("Player %d reveals card number %d\n", i, state->hand[i][j]);
-				#endif
-			}
+			#if DEBUG
+				printf("Player %d reveals card number %d\n", i, state->hand[i][j]);
+			#endif
 		}
+		LOOP_UPDATE:;
 	}
 
 	//discard played card from hand
