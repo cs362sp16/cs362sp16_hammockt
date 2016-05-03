@@ -233,6 +233,7 @@ static void moveAll(int d[], int s[], int* dc, int* sc)
 }
 
 //modified
+//outpostPlayed is only set if played on non-extra turn
 int endTurn(struct gameState* state)
 {
 	int currentPlayer = whoseTurn(state);
@@ -586,12 +587,19 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			discardCard(handPos, currentPlayer, state, 1);
 			return 0;
 
+		//gives an extra turn (only one though)
 		case outpost:
-			if(!state->outpostTurn)
+			//if no outpost has been played and not extra turn
+			if(!state->outpostPlayed && !state->outpostTurn)
+			{
 				state->outpostPlayed = 1;
 
-			//trash card (for performance reasons)
-			discardCard(handPos, currentPlayer, state, 1);
+				//trash card (for performance reasons)
+				discardCard(handPos, currentPlayer, state, 1);
+			}
+			//outpost has been played already, extra turn, or both
+			else
+				discardCard(handPos, currentPlayer, state, 0);
 			return 0;
 
 		case salvager:
