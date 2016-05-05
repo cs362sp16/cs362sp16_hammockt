@@ -551,7 +551,6 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
-		//NOT FIXED STILL HAS SOME PROBLEMS
 		case tribute: //some code duplication here but works
 			j = state->handCount[nextPlayer]; //pos of interest
 			drawCards(nextPlayer, state, 2); //try to draw/reveal 2 cards
@@ -563,12 +562,12 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			//decrementing so I can process and remove at the same time
 			for(i = state->handCount[nextPlayer]-1; i >= j; --i)
 			{
-				//problem here, cards can be multiple types
+				//cards can be multiple types
 				if(isTreasure(state->hand[nextPlayer][i])) //Treasure cards
 					state->coins += 2;
-				else if(isVictory(state->hand[nextPlayer][i])) //Victory cards
+				if(isVictory(state->hand[nextPlayer][i])) //Victory cards
 					drawCards(currentPlayer, state, 2);
-				else //Action Card. Problem with curses here
+				if(isAction(state->hand[nextPlayer][i])) //Action cards
 					state->numActions += 2;
 
 				//discard the processed card. Its the top card so we can pop it

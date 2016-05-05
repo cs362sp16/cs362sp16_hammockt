@@ -188,3 +188,8 @@ int isKingdom(int card)
 {
 	return (!isBasic(card) && card >= curse && card <= treasure_map);
 }
+
+int isAction(int card)
+{
+	return (card >= adventurer && card <= treasure_map && card != gardens);
+}
