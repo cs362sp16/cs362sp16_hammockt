@@ -9,7 +9,7 @@ int adventurerEffect(struct gameState* state, int currentPlayer, int handPos)
 			break;
 
 		int cardDrawn = TOP(hand, currentPlayer); //top card of hand is most recently drawn card.
-		if(isTreasure(cardDrawn)) //is treasure?
+		if(isTreasure(cardDrawn))
 			drawntreasure++;
 		else
 		{
@@ -83,8 +83,7 @@ int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, in
 		printf("Player %d reveals card number: %d\n", currentPlayer, state->hand[currentPlayer][choice1]);
 	#endif
 
-	int card = state->hand[currentPlayer][choice1];
-	int numOccur = 0;
+	int numOccur = 0, card = state->hand[currentPlayer][choice1];
 	for(int i = 0; i < choice2; ++i)
 		if(safeDiscard(card, currentPlayer, state, 1) != -1)
 			++numOccur;
@@ -93,8 +92,7 @@ int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, in
 	state->supplyCount[card] += numOccur;
 
 	//each other player gains a copy of revealed card
-	//its suppose to start after currentPlayer and matters when supply runs out
-	for(int i = 0; i < state->numPlayers; ++i)
+	for(int i = (currentPlayer+1)%state->numPlayers; i != currentPlayer; i = (i+1)%state->numPlayers)
 		if(i != currentPlayer)
 			gainCard(card, state, 0, i);
 
@@ -103,7 +101,6 @@ int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, in
 	return 0;
 }
 
-//everyone discards at most one card so discard is safe
 int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	state->coins += 2; //+2 coins
@@ -113,24 +110,15 @@ int cutpurseEffect(struct gameState* state, int currentPlayer, int handPos)
 		if(i == currentPlayer) //don't process ourselves
 			continue;
 
-		//try to discard 1 copper and stop
-		for(int j = 0; j < state->handCount[i]; ++j)
-		{
-			if(state->hand[i][j] == copper)
-			{
-				discardCard(j, i, state, 0); //handPos, currentPlayer
-				goto LOOP_UPDATE; //skip over card reveal
-			}
-		}
+		//try to discard 1 copper and continue if we found one
+		if(safeDiscard(copper, i, state, 0) != -1)
+			continue;
 
-		//did we check every card? if yes then goto will not skip over this
-		for(int j = 0; j < state->handCount[i]; ++j) //can optimize here but code might break if handCount < 0
-		{
-			#if DEBUG
+		//did we check every card? if safeDiscard == -1 then yes
+		#if DEBUG
+			for(int j = 0; j < state->handCount[i]; ++j)
 				printf("Player %d reveals card number %d\n", i, state->hand[i][j]);
-			#endif
-		}
-		LOOP_UPDATE:;
+		#endif
 	}
 
 	//discard played card from hand
@@ -163,7 +151,7 @@ int salvagerEffect(struct gameState* state, int currentPlayer, int handPos, int 
 
 int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 {
-	for(int i = 0; i < state->numPlayers; ++i)
+	for(int i = (currentPlayer+1)%state->numPlayers; i != currentPlayer; i = (i+1)%state->numPlayers)
 	{
 		if(i != currentPlayer)
 		{

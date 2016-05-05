@@ -390,13 +390,12 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			return councilRoomEffect(state, currentPlayer, handPos);
 
 		case feast: //gain card with cost up to 5
-			//does exist or have supply?
-			if(supplyCount(choice1, state) <= 0)
+			//does exist or have supply? is its cost <= 5?
+			if(supplyCount(choice1, state) <= 0 || getCost(choice1) <= 5)
 				return -1;
 
-			//Gain the card (in discard) if <= 5
-			if(getCost(choice1) <= 5)
-				gainCard(choice1, state, 0, currentPlayer);
+			//Gain the card (in discard)
+			gainCard(choice1, state, 0, currentPlayer);
 
 			//must trash it
 			discardCard(handPos, currentPlayer, state, 1);
@@ -417,15 +416,15 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				return -1;
 
 			//can trade a gold/silver for copper
-			if((getCost(choice2) - 3) > getCost(state->hand[currentPlayer][choice1]))
+			if(getCost(state->hand[currentPlayer][choice1])+3 < getCost(choice2))
 				return -1;
 
 			//puts card in hand
-			gainCard(choice2, state, 2, currentPlayer); //don't need to check thanks to choice2 if
+			gainCard(choice2, state, 2, currentPlayer);
 
 			//discard card from hand and trash treasure
-			discardCard(handPos, currentPlayer, state, 0);
 			discardCard(choice1, currentPlayer, state, 1);
+			safeDiscard(mine, currentPlayer, state, 0);
 
 			return 0;
 
@@ -439,15 +438,15 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 				return -1;
 
 			//can trade for a lower card (if they want to)
-			if((getCost(choice2) - 2) > getCost(state->hand[currentPlayer][choice1]))
+			if(getCost(state->hand[currentPlayer][choice1])+2 < getCost(choice2))
 				return -1;
 
 			//puts card in discard
-			gainCard(choice2, state, 0, currentPlayer);  //don't need to check thanks to choice2 if
+			gainCard(choice2, state, 0, currentPlayer);
 
 			//discard card from hand and trash other
-			discardCard(handPos, currentPlayer, state, 0);
-			discardCard(choice1, currentPlayer, state, 0);
+			discardCard(choice1, currentPlayer, state, 1);
+			safeDiscard(remodel, currentPlayer, state, 0);
 
 			return 0;
 
@@ -484,7 +483,11 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			discardCard(handPos, currentPlayer, state, 0);
 			return 0;
 
-		case minion: //what if choice1 is not 1 or 2
+		//+1 action. get 2 coins or discard hand, draw 4, then everyone with >= 5 cards discards and draws 4 cards
+		case minion:
+			if(choice1 < 1 || choice1 > 2)
+				return -1;
+
 			//+1 action
 			state->numActions++;
 
@@ -498,21 +501,21 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			}
 
 			//discard hand, redraw 4, other players with 5+ cards discard hand and draw 4
-			//can use moveAll here
-			while(state->handCount[currentPlayer] > 0)
-				discardCard(0, currentPlayer, state, 0);
+			moveAll(state->discard[currentPlayer], state->hand[currentPlayer],
+					state->discardCount+currentPlayer, state->handCount+currentPlayer);
 
 			//draw 4
 			drawCards(currentPlayer, state, 4);
 
 			//other players discard hand and redraw if hand size >= 5
+			//maybe should start after player like ambassador and sea hag
 			for(i = 0; i < state->numPlayers; ++i)
 			{
 				if(i != currentPlayer && state->handCount[i] >= 5)
 				{
 					//discard hand
-					while(state->handCount[i] > 0)
-						discardCard(0, i, state, 0);
+					moveAll(state->discard[i], state->hand[i],
+							state->discardCount+i, state->handCount+i);
 
 					//draw 4
 					drawCards(i, state, 4);
@@ -521,16 +524,43 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
-		case steward: //there is a problem here possibly with how cards need to be discarded
-			if(choice1 == 1) //+2 cards
-				drawCards(currentPlayer, state, 2);
-			else if(choice1 == 2) //+2 coins
-				state->coins += 2;
-			else //need to check choice2 and choice3 here
+		case steward:
+			switch(choice1)
 			{
-				//trash 2 cards in hand. Can trash 1 (or 0?) if have less than 2
-				discardCard(choice2, currentPlayer, state, 1); //removes cards from play
-				discardCard(choice3, currentPlayer, state, 1);
+				case 1: //+2 cards
+					drawCards(currentPlayer, state, 2);
+					break;
+
+				case 2: //+2 coins
+					state->coins += 2;
+					break;
+
+				case 3: //trash 2 cards
+					//steward and up to 2 other cards
+					if(state->handCount[currentPlayer] <= 3)
+					{
+						discardCard(handPos, currentPlayer, state, 0);
+						while(state->handCount[currentPlayer] > 0)
+							POP(discard, currentPlayer);
+						return 0;
+					}
+
+					//have more than 3 cards
+					if(choice2 < 0 || choice2 >= state->handCount[currentPlayer] ||
+					   choice3 < 0 || choice3 >= state->handCount[currentPlayer] ||
+					   choice2 == choice3 || choice2 == handPos || choice3 == handPos)
+						return -1;
+					int card1 = state->hand[currentPlayer][choice2];
+					int card2 = state->hand[currentPlayer][choice3];
+					discardCard(handPos, currentPlayer, state, 0);
+					//because of how we discard, card pos's will get moved around
+					//so get and remove by card type which is safe
+					safeDiscard(card1, currentPlayer, state, 1);
+					safeDiscard(card2, currentPlayer, state, 1);
+					return 0;
+
+				default:
+					return -1;
 			}
 
 			//discard card from hand
@@ -554,7 +584,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 					state->coins += 2;
 				else if(isVictory(state->hand[nextPlayer][i])) //Victory cards
 					drawCards(currentPlayer, state, 2);
-				else //Action Card
+				else //Action Card. Problem with curses here
 					state->numActions += 2;
 
 				//discard the processed card. Its the top card so we can pop it
