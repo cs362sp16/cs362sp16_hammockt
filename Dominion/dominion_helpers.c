@@ -1,7 +1,6 @@
 #include "dominion_helpers.h"
 #include <string.h>
 
-//modified
 int drawCard(int player, struct gameState* state)
 {
 	//Deck is empty
@@ -14,13 +13,12 @@ int drawCard(int player, struct gameState* state)
 		//Step 1 Shuffle the discard pile back into a deck
 		//Move discard to deck & clear discard to -1 (for now)
 		memcpy(state->deck[player], state->discard[player], state->discardCount[player] * sizeof(int));
-		//memset(state->discard[player], -1, state->discardCount[player] * sizeof(int)); //nbytes = count * int
 
 		state->deckCount[player] = state->discardCount[player];
 		state->discardCount[player] = 0;//Reset discard
 
-		//Shuffle the deck
-		shuffle(player, state);//Shuffle the deck up and make it so that we can draw
+		//Shuffle the deck up and make it so that we can draw
+		shuffle(player, state);
 	}
 
 	//Draw the Card
@@ -35,7 +33,6 @@ void drawCards(int player, struct gameState* state, int numCards)
 		drawCard(player, state);
 }
 
-//modified
 int updateCoins(int player, struct gameState* state)
 {
 	int totalCoins = 0;
@@ -55,7 +52,6 @@ int updateCoins(int player, struct gameState* state)
 	return totalCoins;
 }
 
-//modified
 int discardCard(int handPos, int currentPlayer, struct gameState* state, int trashFlag)
 {
 	//if card is not trashed, add to Played pile
@@ -71,9 +67,6 @@ int discardCard(int handPos, int currentPlayer, struct gameState* state, int tra
 	if(handPos != state->handCount[currentPlayer])
 		state->hand[currentPlayer][handPos] = state->hand[currentPlayer][state->handCount[currentPlayer]]; //safe cause dec
 
-	//set last card to -1
-	//state->hand[currentPlayer][state->handCount[currentPlayer]] = -1; //safe cause dec
-
 	return 0;
 }
 
@@ -87,7 +80,6 @@ int safeDiscard(int card, int currentPlayer, struct gameState* state, int trashF
 	return -1;
 }
 
-//modified
 int gainCard(int supplyPos, struct gameState* state, int toFlag, int player)
 {
 	//Note: supplyPos is enum of choosen card
@@ -113,7 +105,6 @@ int gainCard(int supplyPos, struct gameState* state, int toFlag, int player)
 	return 0;
 }
 
-//fixed
 int getCost(int cardNumber)
 {
 	switch(cardNumber)

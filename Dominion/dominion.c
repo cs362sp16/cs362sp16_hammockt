@@ -7,19 +7,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-//modified
 static int compare(const void* a, const void* b)
 {
 	return (*(int*)a - *(int*)b);
 }
 
-//modified
 struct gameState* newGame()
 {
 	return (struct gameState*)malloc(sizeof(struct gameState));
 }
 
-//modified
 int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct gameState* state)
 {
 	int j;
@@ -116,7 +113,6 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed, struct 
 	return 0;
 }
 
-//formatted
 int shuffle(int player, struct gameState* state)
 {
 	int newDeck[MAX_DECK];
@@ -145,7 +141,6 @@ int shuffle(int player, struct gameState* state)
 	return 0;
 }
 
-//modified
 int playCard(int handPos, int choice1, int choice2, int choice3, struct gameState* state)
 {
 	//check if it is the right phase or player has enough actions
@@ -169,7 +164,6 @@ int playCard(int handPos, int choice1, int choice2, int choice3, struct gameStat
 	return 0;
 }
 
-//formatted
 int buyCard(int supplyPos, struct gameState* state)
 {
 	//I don't know what to do about the phase thing. Should check phase
@@ -191,20 +185,17 @@ int buyCard(int supplyPos, struct gameState* state)
 	return 0;
 }
 
-//formatted
 int numHandCards(struct gameState* state)
 {
 	return state->handCount[whoseTurn(state)];
 }
 
-//formatted
 int handCard(int handPos, struct gameState* state)
 {
 	int currentPlayer = whoseTurn(state);
 	return state->hand[currentPlayer][handPos];
 }
 
-//modified
 int supplyCount(int card, struct gameState* state)
 {
 	if(card < 0 || card > treasure_map)
@@ -212,13 +203,11 @@ int supplyCount(int card, struct gameState* state)
 	return state->supplyCount[card];
 }
 
-//fixed
 int fullDeckCount(int player, struct gameState* state)
 {
 	return state->deckCount[player] + state->handCount[player] + state->discardCount[player];
 }
 
-//formatted
 int whoseTurn(struct gameState* state)
 {
 	return state->whoseTurn;
@@ -227,12 +216,10 @@ int whoseTurn(struct gameState* state)
 static void moveAll(int d[], int s[], int* dc, int* sc)
 {
 	memcpy(d + *dc, s, *sc * sizeof(int));
-	//memset(s, -1, *sc * sizeof(int));
 	*dc += *sc;
 	*sc = 0;
 }
 
-//modified
 //outpostPlayed is only set if played on non-extra turn
 int endTurn(struct gameState* state)
 {
@@ -281,7 +268,6 @@ int endTurn(struct gameState* state)
 	return 0;
 }
 
-//modified
 int isGameOver(struct gameState* state)
 {
 	int emptySupply = 0;
@@ -312,7 +298,6 @@ static int scoreHelper(int card, int gardenVal)
 	return 0; //if none do not do anything
 }
 
-//modified
 int scoreFor(int player, struct gameState* state)
 {
 	int score = 0, gardenVal = fullDeckCount(player, state) / 10;
@@ -335,7 +320,6 @@ int scoreFor(int player, struct gameState* state)
 	return score;
 }
 
-//modified
 int getWinners(int players[MAX_PLAYERS], struct gameState* state)
 {
 	int i, highScore = -9999, lessTurns = 0;
@@ -372,8 +356,7 @@ int getWinners(int players[MAX_PLAYERS], struct gameState* state)
 	return 0;
 }
 
-//modified. Leaving this in dominion.c for now
-//Also must discard high pos cards first. Which is a problem almost everywhere in here
+//Leaving this in dominion.c for now
 int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState* state, int handPos)
 {
 	int i, j;
@@ -568,6 +551,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
+		//NOT FIXED STILL HAS SOME PROBLEMS
 		case tribute: //some code duplication here but works
 			j = state->handCount[nextPlayer]; //pos of interest
 			drawCards(nextPlayer, state, 2); //try to draw/reveal 2 cards
