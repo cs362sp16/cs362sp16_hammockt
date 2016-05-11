@@ -20,6 +20,8 @@ int isTreasure(int card);
 int isBasic(int card);
 int isKingdom(int card);
 int isAction(int card);
+void moveAll(int d[], int s[], int* dc, int* sc);
+void moveFromOffset(int d[], int s[], int* dc, int* sc, int offset);
 int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState* state, int handPos);
 
 #endif

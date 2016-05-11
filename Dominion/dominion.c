@@ -213,13 +213,6 @@ int whoseTurn(struct gameState* state)
 	return state->whoseTurn;
 }
 
-static void moveAll(int d[], int s[], int* dc, int* sc)
-{
-	memcpy(d + *dc, s, *sc * sizeof(int));
-	*dc += *sc;
-	*sc = 0;
-}
-
 //outpostPlayed is only set if played on non-extra turn
 int endTurn(struct gameState* state)
 {
@@ -551,7 +544,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 			return 0;
 
-		case tribute: //some code duplication here but works
+		case tribute:
 			j = state->handCount[nextPlayer]; //pos of interest
 			drawCards(nextPlayer, state, 2); //try to draw/reveal 2 cards
 

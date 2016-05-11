@@ -2,6 +2,8 @@
 
 int adventurerEffect(struct gameState* state, int currentPlayer, int handPos)
 {
+	int origSize = state->playedCardCount;
+
 	for(int drawntreasure = 0; drawntreasure < 2; )
 	{
 		//draw a card. Automatically puts discard into deck but quit if discard and deck are both empty
@@ -13,10 +15,14 @@ int adventurerEffect(struct gameState* state, int currentPlayer, int handPos)
 			drawntreasure++;
 		else
 		{
-			PUSH(discard, currentPlayer, cardDrawn); //discard all cards in play that have been drawn
+			//discard all cards in play that have been drawn into a "reveal pile"
+			//if we put straight into discard then we can create an infinite loop
+			state->playedCards[state->playedCardCount++] = cardDrawn;
 			POP(hand, currentPlayer); //this should just remove the top card (the most recently drawn one).
 		}
 	}
+	moveFromOffset(state->discard[currentPlayer], state->playedCards,
+					state->discardCount+currentPlayer, &state->playedCardCount, origSize);
 
 	//put played card in discard pile
 	discardCard(handPos, currentPlayer, state, 0);

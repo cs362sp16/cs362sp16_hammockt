@@ -56,10 +56,7 @@ int discardCard(int handPos, int currentPlayer, struct gameState* state, int tra
 {
 	//if card is not trashed, add to Played pile
 	if(trashFlag < 1)
-	{
-		state->playedCards[state->playedCardCount] = state->hand[currentPlayer][handPos];
-		state->playedCardCount++;
-	}
+		state->playedCards[state->playedCardCount++] = state->hand[currentPlayer][handPos];
 
 	//remove card from player's hand
 	POP(hand, currentPlayer);
@@ -192,4 +189,20 @@ int isKingdom(int card)
 int isAction(int card)
 {
 	return (card >= adventurer && card <= treasure_map && card != gardens);
+}
+
+void moveAll(int d[], int s[], int* dc, int* sc)
+{
+	memcpy(d + *dc, s, *sc * sizeof(int));
+	*dc += *sc;
+	*sc = 0;
+}
+
+void moveFromOffset(int d[], int s[], int* dc, int* sc, int offset)
+{
+	int numToMove = *sc - offset;
+
+	memcpy(d + *dc, s + offset, numToMove * sizeof(int));
+	*dc += numToMove;
+	*sc -= numToMove;
 }
