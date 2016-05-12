@@ -23,5 +23,11 @@ cardtest%: dominion.o
 unittestresults.out: unittest1 unittest2 unittest3 unittest4 cardtest1 cardtest2 cardtest3 cardtest4
 	bash runUnitTests.sh > $@
 
+randomtestadventurer: dominion.o
+	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+
+randomtestcard%: dominion.o
+	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+
 clean:
-	rm -f *.o playdom player unittest1 unittest2 unittest3 unittest4 cardtest1 cardtest2 cardtest3 cardtest4 *.gcov *.gcda *.gcno *.so *.a *.dSYM
+	rm -f *.o playdom player unittest1 unittest2 unittest3 unittest4 cardtest*[^.c] randomtestadventurer randomtestcard*[^.c] *.gcov *.gcda *.gcno *.so *.a *.dSYM

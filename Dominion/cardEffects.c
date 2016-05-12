@@ -75,6 +75,38 @@ int baronEffect(struct gameState* state, int currentPlayer, int handPos, int cho
 	return 0;
 }
 
+int tributeEffect(struct gameState* state, int currentPlayer, int handPos)
+{
+	int nextPlayer = (currentPlayer + 1) % state->numPlayers;
+	int j = state->handCount[nextPlayer]; //pos of interest
+
+	drawCards(nextPlayer, state, 2); //try to draw/reveal 2 cards
+
+	//handle drawing 2 identical cards. Need to discard [j+1] from hand if true
+	if(state->handCount[nextPlayer] == (j+2) && state->hand[nextPlayer][j] == state->hand[nextPlayer][j+1])
+		PUSH(discard, nextPlayer, POP_R(hand, nextPlayer));
+
+	//decrementing so I can process and remove at the same time
+	for(int i = state->handCount[nextPlayer]-1; i >= j; --i)
+	{
+		//cards can be multiple types
+		if(isTreasure(state->hand[nextPlayer][i])) //Treasure cards
+			state->coins += 2;
+		if(isVictory(state->hand[nextPlayer][i])) //Victory cards
+			drawCards(currentPlayer, state, 2);
+		if(isAction(state->hand[nextPlayer][i])) //Action cards
+			state->numActions += 2;
+
+		//discard the processed card. Its the top card so we can pop it
+		PUSH(discard, nextPlayer, POP_R(hand, nextPlayer));
+	}
+
+	//discard played card from hand
+	discardCard(handPos, currentPlayer, state, 0);
+
+	return 0;
+}
+
 //can be problem here if card chosen is not in supply but not currently possible due to card selection
 int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, int choice1, int choice2)
 {
