@@ -9,6 +9,7 @@ int main(int argc, char* args[])
 {
 	int kCards[10] = {adventurer, gardens, embargo, village, minion, ambassador, cutpurse, sea_hag, tribute, smithy};
 	struct gameState g, orig;
+	int r;
 
 	if(argc != 3)
 	{
@@ -29,6 +30,7 @@ int main(int argc, char* args[])
 		if(totalTime >= secondsLeft)
 			break;
 
+
 		memcpy(&g, &orig, sizeof(struct gameState));
 
 		int numHand = rand() % 10;
@@ -48,8 +50,27 @@ int main(int argc, char* args[])
 		}
 		g.deckCount[0] = numDeck;
 
-		playCard(numHandCards(&g)-1, 0, 0, 0, &g);
+
+		int oldTotalCards = fullDeckCount(0, &g);
+		r = playCard(numHandCards(&g)-1, 0, 0, 0, &g);
+		myAssert(r == 0, "Played cards failed", __LINE__);
+
+		int diff = numHandCards(&g)-numHand;
+		//old hand was numHand+1. old hand can be -1 with no treasures found to +1 with 2 treasures found
+		myAssert((diff >= 0) && (diff <= 2), "Incorrect hand count", __LINE__);
+
+		for(int i = 0; i < diff; ++i)
+			myAssert(isTreasure(handCard(numHandCards(&g)-1-i, &g)), "Gained something other than a treasure", __LINE__);
+
+		endTurn(&g);
+		r = myAssert(oldTotalCards == fullDeckCount(0, &g), "Cards were lost", __LINE__);
+		if(r != 0)
+			break;
 	}
+
+	r = myAssert(1, "", __LINE__);
+	if(r == 0)
+		printf("Tests completed successfully\n");
 
 	return 0;
 }

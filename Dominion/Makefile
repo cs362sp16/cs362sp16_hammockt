@@ -23,11 +23,20 @@ cardtest%: dominion.o
 unittestresults.out: unittest1 unittest2 unittest3 unittest4 cardtest1 cardtest2 cardtest3 cardtest4
 	bash runUnitTests.sh > $@
 
-randomtestadventurer: dominion.o
-	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+randomtestadventurer.out: dominion.o
+	gcc -o randomtestadventurer randomtestadventurer.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+	randomtestadventurer 42 1 > $@
+	bash bashRandomCoverage.sh adventurer >> $@
 
-randomtestcard%: dominion.o
-	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+randomtestcard1.out: dominion.o
+	gcc -o randomtestcard1 randomtestcard1.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+	randomtestcard1 42 1 > $@
+	bash bashRandomCoverage.sh baron >> $@
+
+randomtestcard2.out: dominion.o
+	gcc -o randomtestcard2 randomtestcard2.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+	randomtestcard2 42 1 > $@
+	bash bashRandomCoverage.sh seaHag >> $@
 
 clean:
-	rm -f *.o playdom player unittest1 unittest2 unittest3 unittest4 cardtest*[^.c] randomtestadventurer randomtestcard*[^.c] *.gcov *.gcda *.gcno *.so *.a *.dSYM
+	rm -f *.o *.out playdom player unittest1 unittest2 unittest3 unittest4 cardtest*[^.c] randomtestadventurer randomtestcard*[^.c] *.gcov *.gcda *.gcno *.so *.a *.dSYM
