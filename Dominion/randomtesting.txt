@@ -1,0 +1,27 @@
+////////////////////////////
+/// Assignment 3 Testing ///
+////////////////////////////
+
+Results
+-The random testers performed better than what I was expecting. I was not expecting any of
+ them to find any bugs but they actually found one in my adventurer which triggered an
+ infinite loop due to an optimization that I performed (it has been patched though).
+ However writing assertions for the testers was difficult and caused the testers to have a
+ lot of false positives. Basicially I trusted my dominion code more than I did my testers,
+ if something went wrong I checked the testers output and the dominion code and normally
+ found some fault in the tester (except that one bug in adventurer).
+-The coverage results were much better than what I was also expecting them to be.
+ I was expecting coverage to be around 30% for each tester but each one individually
+ averaged 40% and all together got around 46% coverage.
+-All of my testers were able to get 100% code and branch coverage after
+ running each one for one second (could of done less but one second was the smallest
+ timing resolution that I could acturately do for my testers).
+-My unit tests from the last assignment got around 40% for each individual test and all
+ together got around 63% total coverage. Compared to my randomtesters the individual
+ results remained the same but since more cards and functions were tested in the unit
+ tests the overall coverage was higher. For fault detection I was able to trigger specific
+ cases with my unit tests whereas my randomtesters had a lot of redundant cases but
+ generated input that I would normally not test (even though almost all of it had no
+ effect). In the end both of them achieved the same exact effect and got 100% coverage for
+ the card or function that I was testing. But the unit tests were much easier to write,
+ less of a headache to deal with, and much less likely to be buggy with false positives.
