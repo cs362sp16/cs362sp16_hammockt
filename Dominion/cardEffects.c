@@ -1,4 +1,5 @@
 #include "cardEffects.h"
+#include <stdio.h>
 
 int adventurerEffect(struct gameState* state, int currentPlayer, int handPos)
 {
@@ -131,8 +132,7 @@ int ambassadorEffect(struct gameState* state, int currentPlayer, int handPos, in
 
 	//each other player gains a copy of revealed card
 	for(int i = (currentPlayer+1)%state->numPlayers; i != currentPlayer; i = (i+1)%state->numPlayers)
-		if(i != currentPlayer)
-			gainCard(card, state, 0, i);
+		gainCard(card, state, 0, i);
 
 	//discard played card from hand
 	safeDiscard(ambassador, currentPlayer, state, 0);
@@ -191,16 +191,13 @@ int seaHagEffect(struct gameState* state, int currentPlayer, int handPos)
 {
 	for(int i = (currentPlayer+1)%state->numPlayers; i != currentPlayer; i = (i+1)%state->numPlayers)
 	{
-		if(i != currentPlayer)
-		{
-			//add to discard by taking from deck
-			//puts in hand and deals with deck being empty. Dont discard if deck and discard are empty
-			if(drawCard(i, state) != -1) //drawed a card so discard it and pop from hand
-				PUSH(discard, i, POP_R(hand, i));
+		//add to discard by taking from deck
+		//puts in hand and deals with deck being empty. Dont discard if deck and discard are empty
+		if(drawCard(i, state) != -1) //drawed a card so discard it and pop from hand
+			PUSH(discard, i, POP_R(hand, i));
 
-			//try to add curse to top of deck
-			gainCard(curse, state, 1, i);
-		}
+		//try to add curse to top of deck
+		gainCard(curse, state, 1, i);
 	}
 
 	//discard played card from hand

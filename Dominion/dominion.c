@@ -514,8 +514,9 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 					if(state->handCount[currentPlayer] <= 3)
 					{
 						discardCard(handPos, currentPlayer, state, 0);
+						//while hand is not empty, trash it
 						while(state->handCount[currentPlayer] > 0)
-							POP(discard, currentPlayer);
+							POP(hand, currentPlayer);
 						return 0;
 					}
 
@@ -555,7 +556,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 			//+2 Coins
 			state->coins += 2;
 
-			//see if selected pile is in play. This is a bug
+			//see if selected pile is in play
 			if(supplyCount(choice1, state) < 1)
 				return -1;
 
