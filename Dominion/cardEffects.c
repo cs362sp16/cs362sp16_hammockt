@@ -53,7 +53,7 @@ int councilRoomEffect(struct gameState* state, int currentPlayer, int handPos)
 int feastEffect(struct gameState* state, int currentPlayer, int handPos, int choice1)
 {
 	//does exist or have supply? is its cost <= 5?
-	if(supplyCount(choice1, state) <= 0 || getCost(choice1) <= 5)
+	if(supplyCount(choice1, state) <= 0 || getCost(choice1) > 5)
 		return -1;
 
 	//Gain the card (in discard)
