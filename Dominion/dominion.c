@@ -363,185 +363,32 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 		case council_room:
 			return councilRoomEffect(state, currentPlayer, handPos);
 
-		case feast: //gain card with cost up to 5
-			//does exist or have supply? is its cost <= 5?
-			if(supplyCount(choice1, state) <= 0 || getCost(choice1) <= 5)
-				return -1;
+		case feast:
+			return feastEffect(state, currentPlayer, handPos, choice1);
 
-			//Gain the card (in discard)
-			gainCard(choice1, state, 0, currentPlayer);
+		case mine:
+			return mineEffect(state, currentPlayer, handPos, choice1, choice2);
 
-			//must trash it
-			discardCard(handPos, currentPlayer, state, 1);
-
-			return 0;
-
-		case mine: //trash treasure card and get another that costs up to 3 more
-			//valid pos in hand
-			if(choice1 < 0 || choice1 >= state->handCount[currentPlayer])
-				return -1;
-
-			//needs to be a treasure card. If mine is only card then this returns
-			if(!isTreasure(state->hand[currentPlayer][choice1]))
-				return -1;
-
-			//need to gain a treasure card (nothing else). Handles out of bounds input. Handles empty supply
-			if(supplyCount(choice2, state) <= 0 || !isTreasure(choice2))
-				return -1;
-
-			//can trade a gold/silver for copper
-			if(getCost(state->hand[currentPlayer][choice1])+3 < getCost(choice2))
-				return -1;
-
-			//puts card in hand
-			gainCard(choice2, state, 2, currentPlayer);
-
-			//discard card from hand and trash treasure
-			discardCard(choice1, currentPlayer, state, 1);
-			safeDiscard(mine, currentPlayer, state, 0);
-
-			return 0;
-
-		case remodel: //trash card from hand and get one that costs 3 more
-			//valid pos in hand and remodel is not the only card
-			if(choice1 < 0 || choice1 >= state->handCount[currentPlayer] || state->handCount[currentPlayer] <= 1)
-				return -1;
-
-			//check if that choice2 is available or valid
-			if(supplyCount(choice2, state) <= 0)
-				return -1;
-
-			//can trade for a lower card (if they want to)
-			if(getCost(state->hand[currentPlayer][choice1])+2 < getCost(choice2))
-				return -1;
-
-			//puts card in discard
-			gainCard(choice2, state, 0, currentPlayer);
-
-			//discard card from hand and trash other
-			discardCard(choice1, currentPlayer, state, 1);
-			safeDiscard(remodel, currentPlayer, state, 0);
-
-			return 0;
+		case remodel:
+			return remodelEffect(state, currentPlayer, handPos, choice1, choice2);
 
 		case smithy:
-			//+3 Cards
-			drawCards(currentPlayer, state, 3);
-
-			//discard card from hand
-			discardCard(handPos, currentPlayer, state, 0);
-			return 0;
+			return smithyEffect(state, currentPlayer, handPos);
 
 		case village:
-			//+1 Card
-			drawCard(currentPlayer, state);
-
-			//+2 Actions
-			state->numActions += 2;
-
-			//discard played card from hand
-			discardCard(handPos, currentPlayer, state, 0);
-			return 0;
+			return villageEffect(state, currentPlayer, handPos);
 
 		case baron:
 			return baronEffect(state, currentPlayer, handPos, choice1);
 
 		case great_hall:
-			//+1 Card
-			drawCard(currentPlayer, state);
+			return greatHallEffect(state, currentPlayer, handPos);
 
-			//+1 Actions
-			state->numActions++;
-
-			//discard card from hand
-			discardCard(handPos, currentPlayer, state, 0);
-			return 0;
-
-		//+1 action. get 2 coins or discard hand, draw 4, then everyone with >= 5 cards discards and draws 4 cards
 		case minion:
-			if(choice1 < 1 || choice1 > 2)
-				return -1;
-
-			//+1 action
-			state->numActions++;
-
-			//discard card from hand
-			discardCard(handPos, currentPlayer, state, 0);
-
-			if(choice1 == 1) //+2 coins
-			{
-				state->coins += 2;
-				return 0;
-			}
-
-			//discard hand, redraw 4, other players with 5+ cards discard hand and draw 4
-			moveAll(state->discard[currentPlayer], state->hand[currentPlayer],
-					state->discardCount+currentPlayer, state->handCount+currentPlayer);
-
-			//draw 4
-			drawCards(currentPlayer, state, 4);
-
-			//other players discard hand and redraw if hand size >= 5
-			//maybe should start after player like ambassador and sea hag
-			for(int i = 0; i < state->numPlayers; ++i)
-			{
-				if(i != currentPlayer && state->handCount[i] >= 5)
-				{
-					//discard hand
-					moveAll(state->discard[i], state->hand[i],
-							state->discardCount+i, state->handCount+i);
-
-					//draw 4
-					drawCards(i, state, 4);
-				}
-			}
-
-			return 0;
+			return minionEffect(state, currentPlayer, handPos, choice1);
 
 		case steward:
-			switch(choice1)
-			{
-				case 1: //+2 cards
-					drawCards(currentPlayer, state, 2);
-					break;
-
-				case 2: //+2 coins
-					state->coins += 2;
-					break;
-
-				case 3: //trash 2 cards
-					//steward and up to 2 other cards
-					if(state->handCount[currentPlayer] <= 3)
-					{
-						discardCard(handPos, currentPlayer, state, 0);
-						//while hand is not empty, trash it
-						while(state->handCount[currentPlayer] > 0)
-							POP(hand, currentPlayer);
-						return 0;
-					}
-
-					//have more than 3 cards
-					if(choice2 < 0 || choice2 >= state->handCount[currentPlayer] ||
-					   choice3 < 0 || choice3 >= state->handCount[currentPlayer] ||
-					   choice2 == choice3 || choice2 == handPos || choice3 == handPos)
-						return -1;
-					int card1 = state->hand[currentPlayer][choice2];
-					int card2 = state->hand[currentPlayer][choice3];
-					discardCard(handPos, currentPlayer, state, 0);
-					//because of how we discard, card pos's will get moved around
-					//so get and remove by card type which is safe
-					safeDiscard(card1, currentPlayer, state, 1);
-					safeDiscard(card2, currentPlayer, state, 1);
-					return 0;
-
-				default:
-					return -1;
-			}
-
-			//discard card from hand
-			discardCard(handPos, currentPlayer, state, 0);
-
-			return 0;
+			return stewardEffect(state, currentPlayer, handPos, choice1, choice2, choice3);
 
 		case tribute:
 			return tributeEffect(state, currentPlayer, handPos);
@@ -552,35 +399,11 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 		case cutpurse:
 			return cutpurseEffect(state, currentPlayer, handPos);
 
-		case embargo: //+2 coins and place embargo token on a supply pile
-			//+2 Coins
-			state->coins += 2;
+		case embargo:
+			return embargoEffect(state, currentPlayer, handPos, choice1);
 
-			//see if selected pile is in play
-			if(supplyCount(choice1, state) < 1)
-				return -1;
-
-			//add embargo token to selected supply pile
-			state->embargoTokens[choice1]++;
-
-			//trash card
-			discardCard(handPos, currentPlayer, state, 1);
-			return 0;
-
-		//gives an extra turn (only one though)
 		case outpost:
-			//if no outpost has been played and not extra turn
-			if(!state->outpostPlayed && !state->outpostTurn)
-			{
-				state->outpostPlayed = 1;
-
-				//trash card (for performance reasons)
-				discardCard(handPos, currentPlayer, state, 1);
-			}
-			//outpost has been played already, extra turn, or both
-			else
-				discardCard(handPos, currentPlayer, state, 0);
-			return 0;
+			return outpostEffect(state, currentPlayer, handPos);
 
 		case salvager:
 			return salvagerEffect(state, currentPlayer, handPos, choice1);
