@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+old_directory=`pwd`
+
+cd $1
+make testdominion
+./testdominion $3 > first.out
+mv first.out $old_directory
+cd $old_directory
+
+cd $2
+make testdominion
+./testdominion $3 > second.out
+mv second.out $old_directory
+cd $old_directory
+
+diff -s -y first.out second.out > diff.out
+results=`tail -n 1 < diff.out`
+if [ "$results" == "Files first.out and second.out are identical" ]; then
+	echo "TEST PASSED"
+else
+	echo "TEST FAILED"
+fi
