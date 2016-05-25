@@ -41,7 +41,12 @@ int main(int argc, char* args[])
 	int numPlayers = (rand() % 3) + 2;
 	r = initializeGame(numPlayers, kCards, seed, &g);
 
-	printf("Running testdominion\n\n");
+	printf("Running testdominion\n");
+	printf("Using cards: ");
+	for(int i = 0; i < 9; ++i)
+		printf("%d, ", kCards[i]);
+	printf("%d\n\n", kCards[9]);
+
 	myAssert(r != -1, "init failed", __LINE__);
 		
 	while(!isGameOver(&g))

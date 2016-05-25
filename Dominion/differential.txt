@@ -1,0 +1,18 @@
+////////////////////////////
+/// Assignment 3 Testing ///
+////////////////////////////
+
+Results
+-After comparing my dominion and Tanner Fry's I was able to find a difference with my
+ first seed 42. Unfortunately Tanner's runs into a infinite loop so my diffdominion
+ cannot generate proper output between the two. Since I have a pretty much fully fixed
+ dominion and Tanner has done little to no work on his, I can conclud that their must be
+ a bug in his with the cards that were played. Normally if we do not have a fixed dominion
+ to compare it to this would be a challenge to see who has the right behavior and would
+ require some debugging to figure it out (and both might be wrong to begin with).
+
+-My random tester when run on my code with a seed of 100 gets 64% code coverage without
+ needing a secondary run (which is pretty good). Tanner's however segfaults or runs into
+ an infinite loop with every seed that I tested it with. Because of this I cannot properly
+ get an accurate reading of code coverage for his dominion but by glancing at his code it
+ should be slightly below mine (I have less executable lines in my dominion).
