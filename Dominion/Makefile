@@ -38,11 +38,17 @@ randomtestcard2.out: dominion.o
 	randomtestcard2 42 1 > $@
 	bash bashRandomCoverage.sh seaHag >> $@
 
-testdominion: testdominion.c dominion.o
-	gcc -o $@ $@.c -g dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+randomGame.o: randomGame.c dominion.o
+	gcc -c randomGame.c -g $(CFLAGS)
+
+testdominion: testdominion.c randomGame.o
+	gcc -o $@ $@.c -g randomGame.o dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
 
 testdominion.out: testdominion
 	./testdominion 42 > $@
 
+mutanttest: mutanttest.c randomGame.o
+	gcc -o $@ $@.c -g randomGame.o dominion.o rngs.o cardEffects.o dominion_helpers.o $(CFLAGS)
+
 clean:
-	rm -f *.o *.out playdom player unittest1 unittest2 unittest3 unittest4 cardtest*[^.c] randomtestadventurer randomtestcard*[^.c] testdominion *.gcov *.gcda *.gcno *.so *.a *.dSYM
+	rm -f *.o *.out playdom player unittest1 unittest2 unittest3 unittest4 cardtest*[^.c] randomtestadventurer randomtestcard*[^.c] testdominion mutanttest *.gcov *.gcda *.gcno *.so *.a *.dSYM

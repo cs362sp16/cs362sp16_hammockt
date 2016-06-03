@@ -1,0 +1,32 @@
+////////////////////////
+/// Mutation Testing ///
+////////////////////////
+
+Results
+-For my mutation testing I used a python file (mutate.py) from
+ https://github.com/arun-babu/mutate.py to generate valid non-identical mutations on the
+ dominion cards and ran them against my random game tester. For the tester I used the
+ seeds 59, 320, 8, 58172, 15, 5521, 9, and 4 which get a 98% card code coverage for my
+ original (plays all of the cards and generates adequate input to cover practically every
+ branch). Then compared them using my diffdominion which would tell me when their output
+ would differ.
+
+-For time purposes I could only do 5 mutations because I had to generate and run each
+ mutation test by hand. But my random game tester managed to kill all 5 of the mutants
+ (in my directory as cardEffects.mutant.#.c where # is a number). However after looking at
+ the diff between the random games being played and the coverage results for the mutant
+ cardEffects files I have my doubts about my random game tester. My random game tester
+ implicitly implies that cards are in a certain order like the the players hand for
+ instance. Because of this any slight differences in the code can cause a different card
+ to be played than what was suppose to be played and causes the tester to deviate. Meaning
+ that only a identical copy of my working game can pass the test even if the other one
+ works as well but does logic/processing different from mine (ex: keeps the hands sorted
+ while mine is kept unsorted for performance reasons).
+
+-Even though my tester managed to kill all of the mutants it is flawed in the fact that
+ any other implementation is guranteed to fail it meaning that it generates false
+ positives that are not an indication of a incorrect dominion implementation. Because of
+ mutation testing, what I thought was a good random tester that can achieve phenomenal
+ coverage was actually a really terrible one that is fundamentally flawed and should have
+ never been used in the first place. Essentially mutation testing provided the means to
+ evaluate my bad tester and determine how good it is (which is really handy).

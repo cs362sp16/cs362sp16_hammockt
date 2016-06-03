@@ -1,23 +1,16 @@
 #!/bin/bash -e
 
 old_directory=`pwd`
-mkdir myTemp
-cp $1/. myTemp -R
 
-cd myTemp
-make testdominion
-./testdominion $3 > first.out
+cd $1
+make mutanttest
+./mutanttest > first.out
 mv first.out $old_directory
-#cd $old_directory
+cd $old_directory
 
-rm -f *
-cp $2/. . -R
-cp $4/. . -R
-make testdominion
-timeout 10s ./testdominion $3 > second.out
-if [ $? != 0 ]; then
-	echo "Could not finish tests. Encountered an infinite loop" >> second.out
-fi
+cd $2
+make mutanttest
+./mutanttest > second.out
 mv second.out $old_directory
 cd $old_directory
 
@@ -31,5 +24,3 @@ else
 	echo
 	cat diff.out
 fi
-
-rm -rf myTemp
