@@ -1,0 +1,34 @@
+**********************
+* Debugging Dominion *
+**********************
+
+When I was developing my random game tester, I had it play cards with all choices set to 0
+by default because I had not yet implemented random card choices. After running the tester
+with various seeds, I noticed that code coverage for feast was unusual. Feast was only
+executing one branch that always returned failure (-1). Using Agans 7th principle, check
+the plug, I decided to investigate why it was getting such terrible coverage.
+
+At first I did not trust my random tester because I was using it in a incomplete state and
+it was probably not generating enough random input for feast to get proper coverage. I
+looked at the random tester and realized that feast given a choice of 0 is valid input.
+Feast is a card that allows you to gain a card with a cost up to 5 and with choice = 0,
+feast should have tried gaining a curse card which should have succeeded (even though no
+one in their right mind would do that in a real game of dominion).
+
+With some test cases in mind I then used Agans 2nd principle, make it fail. I ran player
+through a dubugger so I could interactively play dominion while step through the code at
+the same time. I first tried playing feast with choices curse and copper which should have
+succeeded and returned 0. I then tried playing feast with choice this time being gold
+which should have failed and returned -1. However curse/cooper failed and gold succeeded
+meaning that the branch that was determining which path the code should take had a logic
+error in it (which I located using break statements in GDB). As it turns out I
+accidentally used '>' when I should have used '<' for my comparisions, causing the code to
+go down the wrong paths when it shouldn't of.
+
+statement before fix
+if(supplyCount(choice1, state) <= 0 || getCost(choice1) <= 5)
+	return -1;
+
+statement after fix
+if(supplyCount(choice1, state) <= 0 || getCost(choice1) > 5)
+	return -1;
