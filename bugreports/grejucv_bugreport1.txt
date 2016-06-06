@@ -1,0 +1,38 @@
+*********************************************************
+* buyCard fails to return an error with an invaild card *
+*********************************************************
+
+///////////////
+/ Description /
+///////////////
+
+In the dominion code, all of the functions return 0 on success and -1 on failure. For the
+function buyCard its first argument is the supply position of a card you want to buy. For
+the tested dominion implementation, only positions 0-26 are used. However when an invaid
+supply position is used (like -1), buyCard returns 0 (indicating it was successful).
+Invaild supply positions are cards that do not exist and buyCard should return failure
+when it encounters them.
+
+///////////////////
+/ Code to trigger /
+///////////////////
+
+int kCards[10] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, sea_hag,
+				  tribute, smithy};
+struct gameState g;
+int result;
+
+initializeGame(2, kCards, 1, &g);
+
+//buy an invalid card
+result = buyCard(-1, &g);
+assert(result == -1, "Bought a non-existant card");
+
+/////////////////////
+/ Severity/Priority /
+/////////////////////
+
+The priority is low because invaild cards are uncommon and you can restrict their
+occurance through a GUI. But if one manages to slip through, it will trick dominion/GUI
+that it was successful and assume that it bought a valid card which is why the severity is
+medium. 

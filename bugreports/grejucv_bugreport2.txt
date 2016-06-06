@@ -1,0 +1,36 @@
+********************************************************
+* scoreFor fails to return an error with invaild input *
+********************************************************
+
+///////////////
+/ Description /
+///////////////
+
+scoreFor is suppose to return -9999 when it is given invalid input (like getting player
+3's score in a 3 person game where only players 0-2 are active). However when scoreFor is
+given invalid input it does not return -9999 like it is suppose to.
+
+///////////////////
+/ Code to trigger /
+///////////////////
+
+int kCards[10] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, sea_hag,
+				  tribute, smithy};
+struct gameState g;
+int result;
+
+//for consistancy make randomSeed=1
+initializeGame(3, kCards, 1, &g);
+
+//get invalid score for non-existant player
+result = scoreFor(3, &g);
+assert(result == -9999, "Incorrect score for nonexistant player");
+
+/////////////////////
+/ Severity/Priority /
+/////////////////////
+
+The priority is low because invaild players are uncommon, a well written implementation
+using a dynamic array for the players won't encounter them, and can be hidden behind a
+GUI. The severity on the other hand is medium because if a invaid player manages to slip
+through dominion/GUI might not properly display the correct winner for a given game.

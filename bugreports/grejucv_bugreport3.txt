@@ -1,0 +1,41 @@
+**************************************
+* endTurn does not clean-up properly *
+**************************************
+
+///////////////
+/ Description /
+///////////////
+
+For dominion, endTurn is suppose to emulate dominion's clean-up phase. One rule of the
+clean up phase is that, "the player draws a new hand of 5 cards from his Deck. Once the
+player has drawn a new hand of 5 cards, the next player starts his turn." This means that
+the players hand count should be 5 once he ends his turn (they need cards in their hand
+because their are cards that react to the contents of other players hands and their are
+trashing cards that remove cards from other players hands). But when endTurn is called,
+the player does not have 5 cards in his hand.
+
+///////////////////
+/ Code to trigger /
+///////////////////
+
+int kCards[10] = {adventurer, gardens, embargo, village, minion, outpost, cutpurse,
+				  sea_hag, tribute, smithy};
+struct gameState g;
+int result;
+
+//for consistancy make randomSeed=1
+initializeGame(3, kCards, 1, orig);
+
+//end player 0's turn
+endTurn(&g);
+assert(g.handCount[0] == 5, "Player 0 did not draw 5 cards");
+
+/////////////////////
+/ Severity/Priority /
+/////////////////////
+
+The priority and severity are high because this a fundamental rule that has to be true in
+order to play dominion, many reaction/trashing cards depend upon the other players having
+a proper amount of cards in their hand for them to work, and not drawing the right amount
+of cards at the right time screws up the games RNG (causing 2 identical games to have two
+different outcomes).
